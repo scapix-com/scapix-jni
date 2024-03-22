@@ -11,7 +11,7 @@ message(STATUS "SCAPIX_JNI_AUTO_ATTACH_THREAD: ${SCAPIX_JNI_AUTO_ATTACH_THREAD}"
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS source/*)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${sources})
 
-add_library(scapix_jni ${sources} ${java_api_sources})
+add_library(scapix_jni ${sources})
 add_library(scapix::jni ALIAS scapix_jni)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -26,6 +26,7 @@ target_link_libraries(scapix_jni PUBLIC scapix)
 file(GLOB_RECURSE java_api_sources CONFIGURE_DEPENDS ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api/*)
 source_group(TREE ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api PREFIX "java_api" FILES ${java_api_sources})
 target_include_directories(scapix_jni PUBLIC ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API})
+target_sources(scapix_jni PUBLIC ${java_api_sources})
 
 target_include_directories(scapix_jni PUBLIC source)
 target_compile_features(scapix_jni PUBLIC cxx_std_20)
