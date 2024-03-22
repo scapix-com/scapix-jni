@@ -196,6 +196,24 @@ struct native_method
 	}
 };
 
+// Android method marked @CriticalNative
+// https://developer.android.com/reference/dalvik/annotation/optimization/CriticalNative
+
+template <fixed_string Name, typename Type, std::decay_t<Type> Method>
+struct android_critical_native_method
+{
+	template <fixed_string ClassName>
+	static constexpr auto get()
+	{
+		return jni_native_method
+		{
+			Name,
+			signature_v<Type>,
+			Method
+		};
+	}
+};
+
 } // namespace scapix::jni
 
 #endif // SCAPIX_JNI_NATIVE_METHOD_H
