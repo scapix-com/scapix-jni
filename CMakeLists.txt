@@ -14,6 +14,10 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${s
 add_library(scapix_jni ${sources} ${java_api_sources})
 add_library(scapix::jni ALIAS scapix_jni)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(scapix_jni PRIVATE -fPIC)
+endif()
+
 # temporary: should be ScapixCore (scapix::core)
 set(SCAPIX_BRIDGE "java" CACHE STRING "")
 find_package(Scapix REQUIRED)
