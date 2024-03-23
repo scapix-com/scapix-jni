@@ -8,28 +8,12 @@ option(SCAPIX_JNI_AUTO_ATTACH_THREAD "" ON)
 message(STATUS "SCAPIX_JNI_CACHE_CLASS_LOADER: ${SCAPIX_JNI_CACHE_CLASS_LOADER}")
 message(STATUS "SCAPIX_JNI_AUTO_ATTACH_THREAD: ${SCAPIX_JNI_AUTO_ATTACH_THREAD}")
 
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS source/*)
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${sources})
-
-add_library(scapix_jni ${sources})
+add_library(scapix_jni)
 add_library(scapix::jni ALIAS scapix_jni)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(scapix_jni PRIVATE -fPIC)
-endif()
-
-# temporary: should be ScapixCore (scapix::core)
-set(SCAPIX_BRIDGE "java" CACHE STRING "")
-find_package(Scapix REQUIRED)
-target_link_libraries(scapix_jni PUBLIC scapix)
-
-file(GLOB_RECURSE java_api_sources CONFIGURE_DEPENDS ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api/*)
-source_group(TREE ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api PREFIX "java_api" FILES ${java_api_sources})
-target_include_directories(scapix_jni PUBLIC ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API})
-target_sources(scapix_jni PUBLIC ${java_api_sources})
 
 target_include_directories(scapix_jni PUBLIC source)
 target_compile_features(scapix_jni PUBLIC cxx_std_20)
+set_property(TARGET scapix_jni PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(SCAPIX_JNI_CACHE_CLASS_LOADER)
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CACHE_CLASS_LOADER)
@@ -39,8 +23,23 @@ if(SCAPIX_JNI_AUTO_ATTACH_THREAD)
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_AUTO_ATTACH_THREAD)
 endif()
 
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS source/*)
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${sources})
+target_sources(scapix_jni PRIVATE ${sources})
+
 file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
 target_sources(scapix_jni INTERFACE ${java_sources})
+
+# temporary: should be ScapixCore (scapix::core)
+set(SCAPIX_BRIDGE "java" CACHE STRING "")
+find_package(Scapix REQUIRED)
+target_link_libraries(scapix_jni PUBLIC scapix)
+
+target_include_directories(scapix_jni PUBLIC ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API})
+
+file(GLOB_RECURSE java_api_sources CONFIGURE_DEPENDS ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api/*)
+source_group(TREE ${_SCAPIX_PATH}/java_api/${SCAPIX_JAVA_API}/scapix/java_api PREFIX "java_api" FILES ${java_api_sources})
+target_sources(scapix_jni PRIVATE ${java_api_sources})
 
 if(NOT ANDROID)
     # Save CMAKE_FIND_FRAMEWORK
