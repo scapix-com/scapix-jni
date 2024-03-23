@@ -30,6 +30,12 @@ target_sources(scapix_jni PRIVATE ${sources})
 file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
 target_sources(scapix_jni INTERFACE ${java_sources})
 
+function(scapix_jni_source_group)
+    get_target_property(scapix_jni_dir scapix::jni SOURCE_DIR)
+    get_target_property(sources scapix::jni INTERFACE_SOURCES)
+    source_group(TREE ${scapix_jni_dir}/source PREFIX "scapix-jni" FILES ${sources})
+endfunction()
+
 # temporary: should be ScapixCore (scapix::core)
 set(SCAPIX_BRIDGE "java" CACHE STRING "")
 find_package(Scapix REQUIRED)
