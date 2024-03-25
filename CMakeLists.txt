@@ -4,9 +4,11 @@ project(scapix-jni CXX)
 
 option(SCAPIX_JNI_CACHE_CLASS_LOADER "" ON)
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "" ON)
+set(SCAPIX_JAVA_API "jdk-11.0.2" CACHE STRING "subfolder of 'scapix/java_api' folder: jdk-11.0.2, android-28, etc.")
 
 message(STATUS "SCAPIX_JNI_CACHE_CLASS_LOADER: ${SCAPIX_JNI_CACHE_CLASS_LOADER}")
 message(STATUS "SCAPIX_JNI_AUTO_ATTACH_THREAD: ${SCAPIX_JNI_AUTO_ATTACH_THREAD}")
+message(STATUS "SCAPIX_JAVA_API: ${SCAPIX_JAVA_API}")
 
 add_library(scapix_jni)
 add_library(scapix::jni ALIAS scapix_jni)
