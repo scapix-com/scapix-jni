@@ -1,11 +1,11 @@
 /*
-	scapix/jni/java_api.h
+	scapix/jni/java_api/init.h
 
 	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
 */
 
-#ifndef SCAPIX_JNI_JAVA_API_H
-#define SCAPIX_JNI_JAVA_API_H
+#ifndef SCAPIX_JNI_JAVA_API_INIT_H
+#define SCAPIX_JNI_JAVA_API_INIT_H
 
 #include <scapix/jni/object_base.h>
 #include <scapix/jni/ref.h>
@@ -28,4 +28,4 @@ namespace com::sun { namespace sun = ::scapix::java_api::sun; }
 
 } // namespace scapix::java_api
 
-#endif // SCAPIX_JNI_JAVA_API_H
+#endif // SCAPIX_JNI_JAVA_API_INIT_H
