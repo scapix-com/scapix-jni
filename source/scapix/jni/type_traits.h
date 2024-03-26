@@ -52,6 +52,9 @@ concept numeric = integral<T> || floating_point<T>;
 template <typename T>
 concept primitive = numeric<T> || std::same_as<T, jboolean>;
 
+template <typename T>
+concept primitive_or_void = primitive<T> || std::same_as<T, void>;
+
 // array_element
 
 template <typename T>
@@ -164,6 +167,17 @@ struct is_convertible_object<From, To>
 {
 	static constexpr bool value = is_convertible_object_v<typename From::element_type, typename To::element_type>;
 };
+
+// android_critical_native
+
+template <typename T>
+struct is_android_critical_native : std::false_type {};
+
+template <primitive_or_void R, primitive ...Args>
+struct is_android_critical_native<R(Args...)> : std::true_type {};
+
+template <typename T>
+concept android_critical_native = is_android_critical_native<T>::value;
 
 } // namespace scapix::jni
 

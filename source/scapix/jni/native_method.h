@@ -55,8 +55,7 @@ struct param<ref<T>, Cpp>
 template <typename Jni>
 struct param_t;
 
-template <typename Jni>
-	requires (primitive<Jni> || std::is_void_v<Jni>)
+template <primitive_or_void Jni>
 struct param_t<Jni>
 {
 	using type = Jni;
@@ -199,7 +198,7 @@ struct native_method
 // Android method marked @CriticalNative
 // https://developer.android.com/reference/dalvik/annotation/optimization/CriticalNative
 
-template <fixed_string Name, typename Type, std::decay_t<Type> Method>
+template <fixed_string Name, android_critical_native Type, std::decay_t<Type> Method>
 struct android_critical_native_method
 {
 	template <fixed_string ClassName>
