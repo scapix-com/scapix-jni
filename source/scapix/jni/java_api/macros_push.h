@@ -325,3 +325,246 @@
 #pragma push_macro("SIG_IGN")
 #undef SIG_IGN
 
+#pragma push_macro("BIG_ENDIAN")
+#undef BIG_ENDIAN
+
+#pragma push_macro("LITTLE_ENDIAN")
+#undef LITTLE_ENDIAN
+
+#pragma push_macro("linux")
+#undef linux
+
+#pragma push_macro("EDQUOT")
+#undef EDQUOT
+
+#pragma push_macro("EMULTIHOP")
+#undef EMULTIHOP
+
+#pragma push_macro("ENONET")
+#undef ENONET
+
+#pragma push_macro("ESTALE")
+#undef ESTALE
+
+#pragma push_macro("F_OK")
+#undef F_OK
+
+#pragma push_macro("R_OK")
+#undef R_OK
+
+#pragma push_macro("SIGALRM")
+#undef SIGALRM
+
+#pragma push_macro("SIGBUS")
+#undef SIGBUS
+
+#pragma push_macro("SIGCHLD")
+#undef SIGCHLD
+
+#pragma push_macro("SIGCONT")
+#undef SIGCONT
+
+#pragma push_macro("SIGHUP")
+#undef SIGHUP
+
+#pragma push_macro("SIGIO")
+#undef SIGIO
+
+#pragma push_macro("SIGKILL")
+#undef SIGKILL
+
+#pragma push_macro("SIGPIPE")
+#undef SIGPIPE
+
+#pragma push_macro("SIGPROF")
+#undef SIGPROF
+
+#pragma push_macro("SIGPWR")
+#undef SIGPWR
+
+#pragma push_macro("SIGQUIT")
+#undef SIGQUIT
+
+#pragma push_macro("SIGRTMAX")
+#undef SIGRTMAX
+
+#pragma push_macro("SIGRTMIN")
+#undef SIGRTMIN
+
+#pragma push_macro("SIGSTKFLT")
+#undef SIGSTKFLT
+
+#pragma push_macro("SIGSTOP")
+#undef SIGSTOP
+
+#pragma push_macro("SIGSYS")
+#undef SIGSYS
+
+#pragma push_macro("SIGTRAP")
+#undef SIGTRAP
+
+#pragma push_macro("SIGTSTP")
+#undef SIGTSTP
+
+#pragma push_macro("SIGTTIN")
+#undef SIGTTIN
+
+#pragma push_macro("SIGTTOU")
+#undef SIGTTOU
+
+#pragma push_macro("SIGURG")
+#undef SIGURG
+
+#pragma push_macro("SIGUSR1")
+#undef SIGUSR1
+
+#pragma push_macro("SIGUSR2")
+#undef SIGUSR2
+
+#pragma push_macro("SIGVTALRM")
+#undef SIGVTALRM
+
+#pragma push_macro("SIGWINCH")
+#undef SIGWINCH
+
+#pragma push_macro("SIGXCPU")
+#undef SIGXCPU
+
+#pragma push_macro("SIGXFSZ")
+#undef SIGXFSZ
+
+#pragma push_macro("STDERR_FILENO")
+#undef STDERR_FILENO
+
+#pragma push_macro("STDIN_FILENO")
+#undef STDIN_FILENO
+
+#pragma push_macro("STDOUT_FILENO")
+#undef STDOUT_FILENO
+
+#pragma push_macro("WCONTINUED")
+#undef WCONTINUED
+
+#pragma push_macro("WEXITED")
+#undef WEXITED
+
+#pragma push_macro("WNOHANG")
+#undef WNOHANG
+
+#pragma push_macro("WNOWAIT")
+#undef WNOWAIT
+
+#pragma push_macro("WSTOPPED")
+#undef WSTOPPED
+
+#pragma push_macro("WUNTRACED")
+#undef WUNTRACED
+
+#pragma push_macro("W_OK")
+#undef W_OK
+
+#pragma push_macro("X_OK")
+#undef X_OK
+
+#pragma push_macro("_SC_PAGE_SIZE")
+#undef _SC_PAGE_SIZE
+
+#pragma push_macro("_SC_PAGESIZE")
+#undef _SC_PAGESIZE
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WEXITSTATUS")
+#undef WEXITSTATUS
+
+#pragma push_macro("WTERMSIG")
+#undef WTERMSIG
+
+#pragma push_macro("WTERMSIG")
+#undef WTERMSIG
+
+#pragma push_macro("WTERMSIG")
+#undef WTERMSIG
+
+#pragma push_macro("WTERMSIG")
+#undef WTERMSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WSTOPSIG")
+#undef WSTOPSIG
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFEXITED")
+#undef WIFEXITED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSTOPPED")
+#undef WIFSTOPPED
+
+#pragma push_macro("WIFSIGNALED")
+#undef WIFSIGNALED
+
+#pragma push_macro("WIFSIGNALED")
+#undef WIFSIGNALED
+
+#pragma push_macro("WIFSIGNALED")
+#undef WIFSIGNALED
+
+#pragma push_macro("WIFSIGNALED")
+#undef WIFSIGNALED
+
