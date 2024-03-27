@@ -10,7 +10,6 @@
 #include <memory>
 #include <utility>
 #include <type_traits>
-#include <scapix/bridge/type_traits.h>
 #include <scapix/jni/object.h>
 #include <scapix/jni/convert.h>
 #include <scapix/jni/fwd/native_method.h>
