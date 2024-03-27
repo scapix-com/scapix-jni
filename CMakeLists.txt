@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14...3.26)
+cmake_minimum_required(VERSION 3.20...3.27)
 
 project(scapix-jni CXX)
 
@@ -30,16 +30,8 @@ target_sources(scapix_jni PRIVATE ${sources})
 file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
 target_sources(scapix_jni INTERFACE ${java_sources})
 
-function(scapix_jni_source_group)
-    get_target_property(scapix_jni_dir scapix::jni SOURCE_DIR)
-    get_target_property(sources scapix::jni INTERFACE_SOURCES)
-    source_group(TREE ${scapix_jni_dir}/source PREFIX "scapix-jni" FILES ${sources})
-endfunction()
-
-# temporary: should be ScapixCore (scapix::core)
-set(SCAPIX_BRIDGE "java" CACHE STRING "")
-find_package(Scapix REQUIRED)
-target_link_libraries(scapix_jni PUBLIC scapix)
+find_package(ScapixCore REQUIRED)
+target_link_libraries(scapix_jni PUBLIC scapix::core)
 
 if(NOT ANDROID)
     # Save CMAKE_FIND_FRAMEWORK
@@ -74,3 +66,9 @@ if(NOT ANDROID)
     get_target_property(scapix_jni_jar_file scapix_jni_jar JAR_FILE)
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_JAR_FILE="${scapix_jni_jar_file}")
 endif()
+
+function(scapix_jni_source_group)
+    get_target_property(scapix_jni_dir scapix::jni SOURCE_DIR)
+    get_target_property(sources scapix::jni INTERFACE_SOURCES)
+    source_group(TREE ${scapix_jni_dir}/source PREFIX "scapix-jni" FILES ${sources})
+endfunction()
