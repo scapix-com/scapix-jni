@@ -34,7 +34,7 @@ find_package(ScapixCore REQUIRED)
 target_link_libraries(scapix_jni PUBLIC scapix::core)
 
 if(WIN32)
-    target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CLASS_PATH_SEPARATOR=";")
+    target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CLASS_PATH_SEPARATOR="\\x3b") # semicolon
 else()
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CLASS_PATH_SEPARATOR=":")
 endif()
