@@ -33,6 +33,12 @@ target_sources(scapix_jni INTERFACE ${java_sources})
 find_package(ScapixCore REQUIRED)
 target_link_libraries(scapix_jni PUBLIC scapix::core)
 
+if(WIN32)
+    target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CLASS_PATH_SEPARATOR=";")
+else()
+    target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_CLASS_PATH_SEPARATOR=":")
+endif()
+
 if(NOT ANDROID)
     # Save CMAKE_FIND_FRAMEWORK
     if(DEFINED CMAKE_FIND_FRAMEWORK)
