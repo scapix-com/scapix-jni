@@ -70,7 +70,7 @@ struct param_t<ref<T>>
 template <typename T>
 using param_type = typename param_t<T>::type;
 
-template <typename Func>
+template <function_pointer Func>
 struct jni_native_method
 {
 	const char* name;
