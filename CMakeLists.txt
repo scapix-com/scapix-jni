@@ -65,7 +65,7 @@ if(NOT ANDROID)
     include(UseJava)
 
 #   file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
-    add_jar(scapix_jni_jar SOURCES ${java_sources})
+    add_jar(scapix_jni_jar SOURCES ${java_sources} OUTPUT_NAME scapix_jni)
 
     add_dependencies(scapix_jni scapix_jni_jar)
 
