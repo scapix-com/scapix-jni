@@ -32,14 +32,6 @@ struct redirector
 	T value;
 };
 
-// is_ref
-
-template <typename R>
-concept is_ref = requires (R r)
-{
-	[] <typename T, scope Scope> (ref<T, Scope>&) {}(r);
-};
-
 // canonical_ref
 
 template <typename T>

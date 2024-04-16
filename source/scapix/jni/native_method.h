@@ -90,7 +90,113 @@ private:
 template <typename Func>
 jni_native_method(const char*, const char*, Func) -> jni_native_method<Func>;
 
-template <fixed_string ClassName, typename ...Methods>
+// native_method_impl
+
+template <typename JniR, typename R, typename F>
+param_type<JniR> invoke(JNIEnv* env, F&& f)
+{
+	detail::env_.ptr = env;
+
+	try
+	{
+		if constexpr (std::is_void_v<R>)
+		{
+			std::forward<F>(f)();
+		}
+		else
+		{
+			return param<JniR, R>::jni(std::forward<F>(f)());
+		}
+	}
+	catch (const vm_exception& e)
+	{
+		e.get()->throw_();
+	}
+	catch (...)
+	{
+		new_object<com::scapix::native_exception>()->throw_();
+	}
+
+	if constexpr (!std::is_void_v<R>)
+		return {};
+}
+
+template <fixed_string ClassName, native_method_info Info>
+struct native_method_impl
+{
+	template <typename JniType, typename CppType, bool AndroidCriticalNative = false>
+	struct impl;
+
+	template <typename JniR, typename ...JniArgs, typename R, typename ...Args, typename Class>
+	struct impl<JniR(JniArgs...), R(Class::*)(Args...)>
+	{
+		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
+		{
+			return invoke<JniR, R>(env, [&]
+			{
+				decltype(auto) obj = convert_this<Class>(ref<object<ClassName>>(thiz));
+				return (obj.*Info.method)(param<JniArgs, Args>::cpp(args)...);
+			});
+		}
+	};
+
+	template <typename JniR, typename ...JniArgs, typename R, typename ...Args>
+	struct impl<JniR(JniArgs...), R(Args...)>
+	{
+		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)
+		{
+			return invoke<JniR, R>(env, [&]
+			{
+				return Info.method(param<JniArgs, Args>::cpp(args)...);
+			});
+		}
+	};
+
+	template <typename JniR, typename ...JniArgs, typename R, compatible_object<object<ClassName>> This, typename ...Args>
+	struct impl<JniR(JniArgs...), R(ref<This>, Args...)>
+	{
+		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
+		{
+			return invoke<JniR, R>(env, [&]
+			{
+				return Info.method(ref<This>(thiz), param<JniArgs, Args>::cpp(args)...);
+			});
+		}
+	};
+
+	template <typename JniR, typename ...JniArgs, typename R, compatible_object<class_> Class, typename ...Args>
+	struct impl<JniR(JniArgs...), R(ref<Class>, Args...)>
+	{
+		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)
+		{
+			return invoke<JniR, R>(env, [&]
+			{
+				return Info.method(ref<class_>(clazz), param<JniArgs, Args>::cpp(args)...);
+			});
+		}
+	};
+
+	template <typename JniType, typename CppType>
+	struct impl<JniType, CppType, true>
+	{
+		constexpr static auto func = Info.method;
+	};
+
+	static constexpr auto get()
+	{
+		using jni_type = typename decltype(Info)::jni_type;
+		using cpp_type = typename decltype(Info)::cpp_type;
+
+		return jni_native_method
+		{
+			Info.name,
+			signature_v<jni_type>,
+			impl<jni_type, remove_function_qualifiers_t<std::remove_pointer_t<cpp_type>>, Info.android_critical_native>::func
+		};
+	}
+};
+
+template <fixed_string ClassName, native_method_info ...Methods>
 class native_methods
 {
 public:
@@ -104,113 +210,8 @@ private:
 
 	native_methods() = delete;
 
-	static constexpr tuple methods = { Methods::template get<ClassName>()... };
+	static constexpr tuple methods = { native_method_impl<ClassName, Methods>::get()... };
 
-};
-
-// std::decay is a workaround for GCC bug (fixed in GCC 12):
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61355
-
-template <fixed_string Name, typename JniType, typename Type, std::decay_t<Type> Method>
-struct native_method
-{
-	template <fixed_string ClassName, typename JniType_, typename Type_>
-	struct impl;
-
-	template <fixed_string ClassName, typename JniR, typename ...JniArgs, typename R, typename ...Args, typename Class>
-	struct impl<ClassName, JniR(JniArgs...), R(Class::*)(Args...)>
-	{
-		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
-		{
-			detail::env_.ptr = env;
-
-			try
-			{
-				decltype(auto) obj = convert_this<Class>(ref<object<ClassName>>(thiz));
-
-				if constexpr (std::is_void_v<R>)
-				{
-					return (obj.*Method)(param<JniArgs, Args>::cpp(args)...);
-				}
-				else
-				{
-					return param<JniR, R>::jni((obj.*Method)(param<JniArgs, Args>::cpp(args)...));
-				}
-			}
-			catch (const vm_exception& e)
-			{
-				e.get()->throw_();
-			}
-			catch (...)
-			{
-				new_object<com::scapix::native_exception>()->throw_();
-			}
-
-			if constexpr (!std::is_void_v<R>)
-				return {};
-		}
-	};
-
-	template <fixed_string ClassName, typename JniR, typename ...JniArgs, typename R, typename ...Args>
-	struct impl<ClassName, JniR(JniArgs...), R(Args...)>
-	{
-		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)
-		{
-			detail::env_.ptr = env;
-
-			try
-			{
-				if constexpr (std::is_void_v<R>)
-				{
-					return Method(param<JniArgs, Args>::cpp(args)...);
-				}
-				else
-				{
-					return param<JniR, R>::jni(Method(param<JniArgs, Args>::cpp(args)...));
-				}
-			}
-			catch (const vm_exception& e)
-			{
-				e.get()->throw_();
-			}
-			catch (...)
-			{
-				new_object<com::scapix::native_exception>()->throw_();
-			}
-
-			if constexpr (!std::is_void_v<R>)
-				return {};
-		}
-	};
-
-	template <fixed_string ClassName>
-	static constexpr auto get()
-	{
-		return jni_native_method
-		{
-			Name,
-			signature_v<JniType>,
-			impl<ClassName, JniType, remove_function_qualifiers_t<Type>>::func
-		};
-	}
-};
-
-// Android method marked @CriticalNative
-// https://developer.android.com/reference/dalvik/annotation/optimization/CriticalNative
-
-template <fixed_string Name, android_critical_native Type, std::decay_t<Type> Method>
-struct android_critical_native_method
-{
-	template <fixed_string ClassName>
-	static constexpr auto get()
-	{
-		return jni_native_method
-		{
-			Name,
-			signature_v<Type>,
-			Method
-		};
-	}
 };
 
 } // namespace scapix::jni

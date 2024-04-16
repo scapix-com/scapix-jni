@@ -18,6 +18,7 @@
 #include <scapix/jni/fwd/array.h>
 #include <scapix/jni/fwd/object.h>
 #include <scapix/jni/fwd/object_base.h>
+#include <scapix/jni/fwd/ref.h>
 
 namespace scapix::jni {
 
@@ -165,12 +166,33 @@ struct is_convertible_object<From, To>
 	static constexpr bool value = is_convertible_object_v<typename From::value_type::element_type, typename To::value_type::element_type>;
 };
 
+
+// compatible_object
+
+template <typename T1, typename T2>
+concept compatible_object = reference<T1> && reference<T2> && class_name_v<T1> == class_name_v<T2>;
+
+// type
+
+template <typename T>
+concept type = is_ref<T> || primitive<T>;
+
+// return_type
+
+template <typename T>
+concept return_type = type<T> || std::is_void_v<T>;
+
 // method
 
 template <typename F>
 concept method = requires (F* f)
 {
+// clang 22 bug
+#ifdef __clang__
 	[] <typename R, typename ...Args> (R(*)(Args...)) {}(f);
+#else
+	[] <return_type R, type ...Args> (R(*)(Args...)) {}(f);
+#endif
 };
 
 // init_method
@@ -178,13 +200,18 @@ concept method = requires (F* f)
 template <typename F>
 concept init_method = requires (F* f)
 {
+// clang 22 bug
+#ifdef __clang__
 	[] <typename ...Args> (void(*)(Args...)) {}(f);
+#else
+	[] <type ...Args> (void(*)(Args...)) {}(f);
+#endif
 };
 
-// android_critical_native
+// android_critical_native_type
 
 template <typename F>
-concept android_critical_native = requires (F* f)
+concept android_critical_native_type = requires (F* f)
 {
 	[] <primitive_or_void R, primitive ...Args> (R(*)(Args...)) {}(f);
 };

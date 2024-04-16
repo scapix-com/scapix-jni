@@ -60,7 +60,7 @@ public:
 	using native_methods = jni::native_methods
 	<
 		class_name,
-		native_method<"finalize", void(), void(cpp::function::*)(), &cpp::function::finalize>
+		native_method("finalize", &cpp::function::finalize)
 	>;
 
 	cpp::function* get_ptr() const

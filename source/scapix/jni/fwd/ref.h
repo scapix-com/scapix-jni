@@ -17,6 +17,12 @@ using scope = detail::api::scope;
 template <typename T = object<>, scope Scope = scope::generic>
 class ref;
 
+template <typename R>
+concept is_ref = requires (R r)
+{
+	[] <typename T, scope Scope> (ref<T, Scope>&) {}(r);
+};
+
 } // namespace scapix::jni
 
 #endif // SCAPIX_JNI_FWD_REF_H

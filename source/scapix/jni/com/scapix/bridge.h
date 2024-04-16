@@ -62,8 +62,8 @@ protected:
 
 private:
 
-	template <typename>
-	friend class init;
+	template <fixed_string ClassName, typename T, typename ...Args>
+	friend void init(ref<bridge_object<ClassName, T>> thiz, Args... args);
 
 	template <typename Jni, typename Cpp>
 	friend struct jni::convert;
@@ -130,28 +130,15 @@ protected:
 
 };
 
-template <typename T>
-class init
+// No 'universal reference' arguments, as types are explicitly specified, not deduced.
+
+template <fixed_string ClassName, typename T, typename ...Args>
+void init(ref<bridge_object<ClassName, T>> thiz, Args... args)
 {
-public:
-
-	using type = T;
-
-	init(ref<bridge>&& wrapper) : wrapper(std::move(wrapper)) {}
-
-	template <typename ...Args>
-	void create(Args... args)
-	{
-		std::shared_ptr<object_base> obj = std::make_shared<T>(std::forward<Args>(args)...);
-		object_base* ptr = obj.get();
-		ptr->attach(std::move(wrapper), std::move(obj));
-	}
-
-private:
-
-	ref<bridge> wrapper;
-
-};
+	std::shared_ptr<object_base> obj = std::make_shared<T>(std::forward<Args>(args)...);
+	object_base* ptr = obj.get();
+	ptr->attach(std::move(thiz), std::move(obj));
+}
 
 } // namespace cpp
 
@@ -162,18 +149,12 @@ public:
 	using native_methods = jni::native_methods
 	<
 		bridge::class_name,
-		native_method<"finalize", void(), void(cpp::object_base::*)(), &cpp::object_base::finalize>
+		native_method("finalize", &cpp::object_base::finalize)
 	>;
 
 };
 
 } // namespace com::scapix
-
-template <specialization_of<com::scapix::cpp::init> T, fixed_string ClassName>
-T convert_this(ref<object<ClassName>> x)
-{
-	return T(std::move(ref<com::scapix::bridge_object<ClassName, typename T::type>>(x)));
-}
 
 template <std::derived_from<com::scapix::cpp::object_base> T, fixed_string ClassName>
 T& convert_this(ref<object<ClassName>> x)

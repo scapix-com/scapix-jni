@@ -76,8 +76,8 @@ public:
 	using native_methods = jni::native_methods
 	<
 		class_name,
-		native_method<"finalize", void(), void(cpp::native_exception::*)(), &cpp::native_exception::finalize>,
-		native_method<"getMessage", ref<string>(), ref<string>(cpp::native_exception::*)() const, &cpp::native_exception::message>
+		native_method("finalize", &cpp::native_exception::finalize),
+		native_method("getMessage", &cpp::native_exception::message)
 	>;
 
 	cpp::native_exception* cpp() const
