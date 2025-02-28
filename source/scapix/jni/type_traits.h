@@ -27,8 +27,8 @@ template <typename T>
 concept reference = requires
 {
 	requires std::is_class_v<element_type_t<T>>;
-	class_name_v<element_type_t<T>>;
-	typename base_classes_t<element_type_t<T>>;
+	class_name_v<T>;
+	typename base_classes_t<T>;
 };
 
 // primitive
@@ -137,7 +137,7 @@ constexpr std::size_t handle_type()
 } // namespace detail
 
 template <reference T>
-using handle_type_t = typename std::tuple_element_t<detail::handle_type<element_type_t<T>>(), detail::handle_types>::handle_type;
+using handle_type_t = typename std::tuple_element_t<detail::handle_type<T>(), detail::handle_types>::handle_type;
 
 // is_convertible_object
 
@@ -145,7 +145,7 @@ template <typename From, typename To>
 struct is_convertible_object;
 
 template <typename From, typename To>
-constexpr bool is_convertible_object_v = is_convertible_object<element_type_t<From>, element_type_t<To>>::value;
+constexpr bool is_convertible_object_v = is_convertible_object<From, To>::value;
 
 template <typename From, typename To>
 concept convertible_object = is_convertible_object_v<From, To>;

@@ -8,6 +8,7 @@
 #define SCAPIX_JNI_OBJECT_TRAITS_H
 
 #include <scapix/jni/detail/util.h>
+#include <scapix/jni/fwd/element.h>
 
 namespace scapix::jni {
 
@@ -23,10 +24,10 @@ struct object_traits
 };
 
 template <typename T>
-constexpr auto class_name_v = object_traits<T>::class_name;
+constexpr auto class_name_v = object_traits<element_type_t<T>>::class_name;
 
 template <typename T>
-using base_classes_t = typename object_traits<T>::base_classes;
+using base_classes_t = typename object_traits<element_type_t<T>>::base_classes;
 
 } // namespace scapix::jni
 

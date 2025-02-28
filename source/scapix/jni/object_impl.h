@@ -169,7 +169,7 @@ private:
 };
 
 template <reference T>
-using object_impl_t = object_impl<class_name_v<element_type_t<T>>>;
+using object_impl_t = object_impl<class_name_v<T>>;
 
 template <reference Object, typename Type, typename ...Args>
 ref<Object> new_object(jmethodID id, Args&&... args) requires requires { element_type_t<Object>::class_name; }
