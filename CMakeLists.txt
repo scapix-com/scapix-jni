@@ -4,9 +4,11 @@ project(scapix-jni CXX)
 
 option(SCAPIX_JNI_CACHE_CLASS_LOADER "" ON)
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "" ON)
+option(SCAPIX_JNI_STANDARD_UTF8 "" ON)
 
 message(STATUS "SCAPIX_JNI_CACHE_CLASS_LOADER: ${SCAPIX_JNI_CACHE_CLASS_LOADER}")
 message(STATUS "SCAPIX_JNI_AUTO_ATTACH_THREAD: ${SCAPIX_JNI_AUTO_ATTACH_THREAD}")
+message(STATUS "SCAPIX_JNI_STANDARD_UTF8: ${SCAPIX_JNI_STANDARD_UTF8}")
 
 add_library(scapix_jni)
 add_library(scapix::jni ALIAS scapix_jni)
@@ -21,6 +23,10 @@ endif()
 
 if(SCAPIX_JNI_AUTO_ATTACH_THREAD)
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_AUTO_ATTACH_THREAD)
+endif()
+
+if(SCAPIX_JNI_STANDARD_UTF8)
+    target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_STANDARD_UTF8)
 endif()
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS source/*)

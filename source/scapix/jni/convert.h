@@ -101,6 +101,8 @@ struct convert<Jni, std::shared_ptr<T>>
 	}
 };
 
+#ifdef SCAPIX_JNI_STANDARD_UTF8
+
 struct convert_string
 {
 	using charset = object<"java/nio/charset/Charset">;
@@ -112,31 +114,44 @@ struct convert_string
 		return ch;
 	}
 
-	// C->Java conversion is fixed on Android 6 (https://android-review.googlesource.com/#/c/130121/)
-
 	static std::string cpp(ref<string> obj)
 	{
-//		std::string str(obj->length<char>(), char());
-//		obj->get_region(0, static_cast<jsize>(str.size()), str.data());
-//		return str;
-
-		auto bytes = obj->call_method<"getBytes", ref<jbyte[]>(ref<charset>)>(utf8_charset());
+		auto bytes = obj->call_method<"getBytes", ref<array<jbyte>>(ref<charset>)>(utf8_charset());
 		std::string str(bytes->size(), char());
-		bytes->get_region(0, static_cast<jsize>(str.size()), (jbyte*)str.data());
+		bytes->get_region(0, static_cast<jsize>(str.size()), reinterpret_cast<jbyte*>(str.data()));
 
 		return str;
 	}
 
 	static ref<string> jni(std::string_view str)
 	{
-//		return new_object<string>(str.data());
-
 		auto bytes = new_object<array<jbyte>>(static_cast<jsize>(str.size()));
-		bytes->set_region(0, static_cast<jsize>(str.size()), (const jbyte*)str.data());
+		bytes->set_region(0, static_cast<jsize>(str.size()), reinterpret_cast<const jbyte*>(str.data()));
 
-		return new_object<string, void(ref<jbyte[]>, ref<charset>)>(bytes, utf8_charset());
+		return new_object<string, void(ref<array<jbyte>>, ref<charset>)>(bytes, utf8_charset());
 	}
 };
+
+#else // Modified UTF-8
+
+struct convert_string
+{
+	static std::string cpp(ref<string> obj)
+	{
+		std::string str(obj->length<char>(), char());
+		obj->get_region(0, obj->length(), str.data());
+		return str;
+	}
+
+	// fix: std::string_view is not null terminated.
+
+	static ref<string> jni(std::string_view str)
+	{
+		return new_object<string>(str.data());
+	}
+};
+
+#endif
 
 template <typename J, typename Cpp>
 struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, string> && std::is_convertible_v<Cpp, std::string> && !is_ref_v<Cpp>>> : convert_string
