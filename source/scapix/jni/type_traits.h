@@ -148,7 +148,7 @@ template <typename From, typename To>
 constexpr bool is_convertible_object_v = is_convertible_object<From, To>::value;
 
 template <typename From, typename To>
-concept convertible_object = is_convertible_object_v<From, To>;
+concept object_convertible_to = is_convertible_object_v<From, To>;
 
 template <typename From, typename To>
 struct is_convertible_object

@@ -37,7 +37,7 @@ public:
 		return description.c_str();
 	}
 
-	template <convertible_object<throwable> T>
+	template <object_convertible_to<throwable> T>
 	ref<T> instance_of() const noexcept
 	{
 		return exception->instance_of<T>();

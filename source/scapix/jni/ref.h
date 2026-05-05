@@ -128,12 +128,12 @@ public:
 
 	ref(const ref& r) : object(new_ref(r)) {}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref(const ref<Y, S>& r) : object(new_ref(r)) {}
 
 	ref(ref&& r) noexcept : object(r.release()) {}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref(ref<Y, S>&& r) : object(nullptr)
 	{
 		if (get_scope() == r.get_scope())
@@ -158,7 +158,7 @@ public:
 		return *this;
 	}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref& operator = (const ref<Y, S>& r)
 	{
 		ref(r).swap(*this);
@@ -171,7 +171,7 @@ public:
 		return *this;
 	}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref& operator = (ref<Y, S>&& r)
 	{
 		ref(std::move(r)).swap(*this);
@@ -258,12 +258,12 @@ public:
 
 	ref(const ref& r) : object(r.handle()), scp(scope::generic) {}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref(const ref<Y, S>& r) : object(r.handle()), scp(scope::generic) {}
 
 	ref(ref&& r) noexcept : object(r.release()), scp(r.get_scope()) {}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref(ref<Y, S>&& r) : object(r.release()), scp(r.get_scope()) {}
 
 	template <typename X, typename = std::enable_if_t<std::experimental::is_detected_v<has_convert_jni_t, ref, X>>>
@@ -303,7 +303,7 @@ public:
 		return *this;
 	}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref& operator = (const ref<Y, S>& r)
 	{
 		ref(r).swap(*this);
@@ -316,7 +316,7 @@ public:
 		return *this;
 	}
 
-	template <convertible_object<element_type> Y, scope S>
+	template <object_convertible_to<element_type> Y, scope S>
 	ref& operator = (ref<Y, S>&& r)
 	{
 		ref(std::move(r)).swap(*this);
