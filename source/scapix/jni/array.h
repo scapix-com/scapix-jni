@@ -60,9 +60,6 @@ public:
 	{
 	public:
 
-		// We rely on C++17 guaranteed copy elision.
-		// The same could be done in C++11 with Copy-List-Initialization (return {handle, size}).
-
 		reference() = delete;
 		reference(const reference&) = delete;
 		reference(reference&&) = delete;
@@ -152,9 +149,6 @@ public:
 	class const_reference
 	{
 	public:
-
-		// We rely on C++17 guaranteed copy elision.
-		// The same could be done in C++11 with Copy-List-Initialization (return {handle, size}).
 
 		const_reference() = delete;
 		const_reference(const const_reference&) = delete;
@@ -311,20 +305,17 @@ class array_elements
 {
 public:
 
-	typedef T value_type;
-	typedef jsize size_type;
-	typedef jsize difference_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef T& reference;
-	typedef const T& const_reference;
-	typedef T* iterator;
-	typedef const T* const_iterator;
-	typedef std::reverse_iterator<iterator> reverse_iterator;
-	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-
-	// We rely on C++17 guaranteed copy elision.
-	// The same could be done in C++11 with Copy-List-Initialization (return {handle, size}).
+	using value_type = T;
+	using size_type = jsize;
+	using difference_type = jsize;
+	using pointer = T*;
+	using const_pointer = const T*;
+	using reference = T&;
+	using const_reference = const T&;
+	using iterator = T*;
+	using const_iterator = const T*;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	array_elements(const array_elements&) = delete;
 	array_elements& operator=(const array_elements&) = delete;
