@@ -18,15 +18,15 @@ struct array;
 template <typename T>
 struct array<T, lock::noncritical>
 {
-	static T* get_array_elements(handle_type_t<T[]> obj, jboolean* is_copy) { return type<T>::get_array_elements(obj, is_copy); }
-	static void release_array_elements(handle_type_t<T[]> obj, T* elems, jint mode) { type<T>::release_array_elements(obj, elems, mode); }
+	static T* get_array_elements(handle_type_t<jni::array<T>> obj, jboolean* is_copy) { return type<T>::get_array_elements(obj, is_copy); }
+	static void release_array_elements(handle_type_t<jni::array<T>> obj, T* elems, jint mode) { type<T>::release_array_elements(obj, elems, mode); }
 };
 
 template <typename T>
 struct array<T, lock::critical>
 {
-	static T* get_array_elements(handle_type_t<T[]> obj, jboolean* is_copy) { return static_cast<T*>(env()->GetPrimitiveArrayCritical(obj, is_copy)); }
-	static void release_array_elements(handle_type_t<T[]> obj, T* elems, jint mode) { env()->ReleasePrimitiveArrayCritical(obj, elems, mode); }
+	static T* get_array_elements(handle_type_t<jni::array<T>> obj, jboolean* is_copy) { return static_cast<T*>(env()->GetPrimitiveArrayCritical(obj, is_copy)); }
+	static void release_array_elements(handle_type_t<jni::array<T>> obj, T* elems, jint mode) { env()->ReleasePrimitiveArrayCritical(obj, elems, mode); }
 };
 
 } // namespace scapix::jni::detail::api
