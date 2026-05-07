@@ -11,6 +11,7 @@
 #include <scapix/core/type_traits.h>
 #include <scapix/jni/type_traits.h>
 #include <scapix/jni/signature.h>
+#include <scapix/jni/element.h>
 #include <scapix/jni/detail/api/ref.h>
 #include <scapix/jni/fwd/object.h>
 #include <scapix/jni/fwd/class.h>
