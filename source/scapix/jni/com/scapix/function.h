@@ -63,7 +63,10 @@ public:
 		native_method<"finalize", void(), void(cpp::function::*)(), &cpp::function::finalize>
 	>;
 
-	cpp::function* get_ptr() const { return reinterpret_cast<cpp::function*>(get_field<"ptr", jlong>()); }
+	cpp::function* get_ptr() const
+	{
+		return reinterpret_cast<cpp::function*>(get_field<"ptr", jlong>());
+	}
 
 };
 
