@@ -8,12 +8,10 @@
 #define SCAPIX_JNI_REF_H
 
 #include <utility>
-#include <experimental/type_traits>
 #include <scapix/core/type_traits.h>
 #include <scapix/jni/type_traits.h>
 #include <scapix/jni/signature.h>
 #include <scapix/jni/detail/api/ref.h>
-#include <scapix/jni/detail/util.h>
 #include <scapix/jni/fwd/object.h>
 #include <scapix/jni/fwd/class.h>
 #include <scapix/jni/fwd/string.h>
@@ -22,44 +20,24 @@
 
 namespace scapix::jni {
 
+// redirector
+
 template <typename T>
-class redirector
+struct redirector
 {
-public:
-
-	redirector(const redirector&) = delete;
-	redirector& operator = (const redirector&) = delete;
-
-	redirector(redirector&&) = delete;
-	redirector& operator = (redirector&&) = delete;
-
-	explicit redirector(T&& v) : value(std::move(v)) {}
-
 	T* operator -> () && { return &value; }
 	const T* operator -> () const && { return &value; }
 
-	T& operator * () && { return value; }
-	const T& operator * () const && { return value; }
-
-//	operator T* () && { return &value; }
-//	operator const T* () const && { return &value; }
-
-private:
-
 	T value;
-
 };
 
 // is_ref
 
-template<typename T>
-struct is_ref : std::false_type {};
-
-template<typename T, scope Scope>
-struct is_ref<ref<T, Scope>> : std::true_type {};
-
-template<typename T>
-constexpr bool is_ref_v = is_ref<T>::value;
+template <typename R>
+concept is_ref_v = requires (R r)
+{
+	[] <typename T, scope Scope> (ref<T, Scope>&) {}(r);
+};
 
 // canonical_ref
 
@@ -99,10 +77,16 @@ decltype(auto) convert_cpp(Jni&& jni)
 }
 
 template<typename Jni, typename Cpp>
-using has_convert_jni_t = decltype(std::declval<Jni>() = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(std::declval<Cpp>()));
+concept has_convert_jni = !is_ref_v<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+{
+	jni = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(cpp);
+};
 
 template<typename Jni, typename Cpp>
-using has_convert_cpp_t = decltype(std::declval<Cpp>() = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(std::declval<Jni>()));
+concept has_convert_cpp = !is_ref_v<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+{
+	cpp = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(jni);
+};
 
 /*
 
@@ -117,9 +101,6 @@ public:
 
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
-	static constexpr auto class_name = class_name_v<element_type>;
-
-	static_assert(!is_ref_v<T> && !is_ref_v<element_type>);
 
 	constexpr scope get_scope() { return Scope; }
 
@@ -134,17 +115,7 @@ public:
 	ref(ref&& r) noexcept : object(r.release()) {}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref(ref<Y, S>&& r) : object(nullptr)
-	{
-		if (get_scope() == r.get_scope())
-		{
-			object = r.release();
-		}
-		else
-		{
-			object = new_ref(r);
-		}
-	}
+	ref(ref<Y, S>&& r) : object(Scope == r.get_scope() ? r.release() : new_ref(r)) {}
 
 	~ref()
 	{
@@ -178,15 +149,15 @@ public:
 		return *this;
 	}
 
-	redirector<element_type> operator -> () { return redirector<element_type>(make_element()); }
-	const redirector<element_type> operator -> () const { return redirector<element_type>(make_element()); }
-	element_type operator * () { return make_element(); }
-	const element_type operator * () const { return make_element(); }
+	redirector<element_type> operator -> () { return redirector<element_type>(get()); }
+	const redirector<element_type> operator -> () const { return redirector<element_type>(get()); }
+	element_type operator * () { return get(); }
+	const element_type operator * () const { return get(); }
 
 	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
 
 	explicit operator bool() const { return handle() != nullptr; }
-	element_type get() const { return make_element(); }
+	element_type get() const { return element_type{ handle() }; }
 
 	auto handle() const
 	{
@@ -200,7 +171,7 @@ public:
 
 	auto release()
 	{
-		auto temp(static_cast<handle_type>(object));
+		auto temp(handle());
 		object = nullptr;
 		return temp;
 	}
@@ -212,11 +183,6 @@ public:
 	}
 
 private:
-
-	element_type make_element() const
-	{
-		return detail::befriend<element_type, ref>(handle());
-	}
 
 	template <typename Ref>
 	static jobject new_ref(const Ref& r)
@@ -246,9 +212,6 @@ public:
 
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
-	static constexpr auto class_name = class_name_v<element_type>;
-
-	static_assert(!is_ref_v<T> && !is_ref_v<element_type>);
 
 	scope get_scope() { return scp; }
 
@@ -266,13 +229,15 @@ public:
 	template <object_convertible_to<element_type> Y, scope S>
 	ref(ref<Y, S>&& r) : object(r.release()), scp(r.get_scope()) {}
 
-	template <typename X, typename = std::enable_if_t<std::experimental::is_detected_v<has_convert_jni_t, ref, X>>>
+	template <typename X>
+		requires has_convert_jni<ref, X>
 	ref(X&& x)
 		: ref(convert_jni<ref>(std::forward<X>(x)))
 	{
 	}
 
-	template <typename X, typename = std::enable_if_t<std::experimental::is_detected_v<has_convert_cpp_t, ref, X> && !std::is_same_v<X, bool>>>
+	template <typename X>
+		requires has_convert_cpp<ref, X>
 	operator X() const
 	{
 		return convert_cpp<X>(*this);
@@ -323,15 +288,15 @@ public:
 		return *this;
 	}
 
-	redirector<element_type> operator -> () { return redirector<element_type>(make_element()); }
-	const redirector<element_type> operator -> () const { return redirector<element_type>(make_element()); }
-	element_type operator * () { return make_element(); }
-	const element_type operator * () const { return make_element(); }
+	redirector<element_type> operator -> () { return redirector<element_type>(get()); }
+	const redirector<element_type> operator -> () const { return redirector<element_type>(get()); }
+	element_type operator * () { return get(); }
+	const element_type operator * () const { return get(); }
 
 	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
 
 	explicit operator bool() const { return handle() != nullptr; }
-	element_type get() const { return make_element(); }
+	element_type get() const { return element_type{ handle() }; }
 
 	auto handle() const
 	{
@@ -345,7 +310,7 @@ public:
 
 	auto release()
 	{
-		auto temp(static_cast<handle_type>(object));
+		auto temp(handle());
 		object = nullptr;
 		return temp;
 	}
@@ -365,11 +330,6 @@ private:
 	ref(jobject h, scope s) noexcept : object(h), scp(s) {}
 
 private:
-
-	element_type make_element() const
-	{
-		return detail::befriend<element_type, ref>(handle());
-	}
 
 	jobject object;
 	scope scp;

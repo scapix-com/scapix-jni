@@ -30,10 +30,6 @@ public:
 	void set_ptr(cpp::object_base* p) { set_field<"ptr", jlong>(reinterpret_cast<jlong>(p)); }
 	cpp::object_base* get_ptr() const { return reinterpret_cast<cpp::object_base*>(get_field<"ptr", jlong>()); }
 
-protected:
-
-	bridge(handle_type h) : object(h) {}
-
 };
 
 template <fixed_string ClassName, typename T>
@@ -49,10 +45,6 @@ public:
 	}
 
 	T* get_ptr() const { return static_cast<T*>(base::get_ptr()); }
-
-protected:
-
-	bridge_object(typename base::handle_type h) : base(h) {}
 
 };
 
@@ -192,7 +184,7 @@ T& convert_this(ref<object<ClassName>> x)
 template <typename J, typename T>
 struct convert_shared<ref<J>, T, std::enable_if_t<std::is_base_of_v<com::scapix::cpp::object_base, T>>>
 {
-	static std::shared_ptr<T> cpp(ref<com::scapix::bridge_object<ref<J>::class_name, T>> v)
+	static std::shared_ptr<T> cpp(ref<com::scapix::bridge_object<ref<J>::element_type::class_name, T>> v)
 	{
 		if (!v)
 			return nullptr;
@@ -200,13 +192,13 @@ struct convert_shared<ref<J>, T, std::enable_if_t<std::is_base_of_v<com::scapix:
 		return std::static_pointer_cast<T>(v->get_ptr()->scapix_shared());
 	}
 
-	static ref<com::scapix::bridge_object<ref<J>::class_name, T>> jni(std::shared_ptr<T> v)
+	static ref<com::scapix::bridge_object<ref<J>::element_type::class_name, T>> jni(std::shared_ptr<T> v)
 	{
 		if (!v)
 			return nullptr;
 
 		auto p = v.get();
-		return p->template get_ref<ref<J>::class_name>(std::move(v));
+		return p->template get_ref<ref<J>::element_type::class_name>(std::move(v));
 	}
 };
 

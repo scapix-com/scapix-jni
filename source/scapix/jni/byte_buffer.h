@@ -32,10 +32,6 @@ public:
 		return detail::env()->GetDirectBufferCapacity(handle());
 	}
 
-protected:
-
-	byte_buffer(handle_type h) : object(h) {}
-
 };
 
 } // namespace scapix::jni

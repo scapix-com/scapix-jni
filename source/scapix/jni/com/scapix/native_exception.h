@@ -95,10 +95,6 @@ public:
 		cpp()->rethrow();
 	}
 
-protected:
-
-	native_exception(handle_type h) : object(h) {}
-
 };
 
 } // namespace com::scapix

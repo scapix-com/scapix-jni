@@ -28,10 +28,6 @@ protected:
 	using base_classes = std::tuple<Bases...>;
 	using handle_type = handle_type_t<object_base>;
 
-	using base_ = object_base;
-
-	object_base(handle_type h) : impl(h), Bases(h)... {}
-
 	template <typename ...Args>
 	static local_ref<object_base> new_object(Args&&... args)
 	{
@@ -56,6 +52,18 @@ protected:
 	using impl::set_static_field;
 	using impl::class_object;
 
+private:
+
+	template <typename T>
+	friend struct object_traits;
+
+	template <typename T, scope Scope>
+	friend class ref;
+
+	template <fixed_string, typename ...>
+	friend class object_base;
+
+	object_base(handle_type h) : impl(h), Bases{h}... {}
 };
 
 #include <scapix/core/warning/pop.h>

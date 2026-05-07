@@ -65,10 +65,6 @@ public:
 
 	cpp::function* get_ptr() const { return reinterpret_cast<cpp::function*>(get_field<"ptr", jlong>()); }
 
-protected:
-
-	function(handle_type h) : object(h) {}
-
 };
 
 template <fixed_string InterfaceClassName, typename Type, fixed_string Name>
@@ -79,10 +75,6 @@ class function_impl<InterfaceClassName, JniR(JniArgs...), Name> : public object<
 	function,
 	jni::function<InterfaceClassName, JniR(JniArgs...), Name>>
 {
-	using base = object<InterfaceClassName + "Impl",
-		function,
-		jni::function<InterfaceClassName, JniR(JniArgs...), Name>>;
-
 public:
 
 	template <typename R, typename ...Args>
@@ -91,10 +83,6 @@ public:
 		cpp::function* ptr = new cpp::function_impl<R(Args...)>(std::move(func));
 		return jni::new_object<function_impl, void(jlong)>(reinterpret_cast<jlong>(ptr));
 	}
-
-protected:
-
-	function_impl(typename base::handle_type h) : base(h) {}
 
 };
 

@@ -153,8 +153,8 @@ struct convert_string
 
 #endif
 
-template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, string> && std::is_convertible_v<Cpp, std::string> && !is_ref_v<Cpp>>> : convert_string
+template <object_convertible_to<string> J, std::convertible_to<std::string> Cpp>
+struct convert<ref<J>, Cpp> : convert_string
 {
 };
 

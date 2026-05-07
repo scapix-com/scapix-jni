@@ -173,10 +173,6 @@ public:
 		detail::check_exception();
 	}
 
-protected:
-
-	string(handle_type h) : object(h) {}
-
 };
 
 } // namespace scapix::jni

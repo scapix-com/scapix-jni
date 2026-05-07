@@ -105,10 +105,6 @@ public:
 		return local_ref<object<"java/lang/reflect/Field">>(field);
 	}
 
-protected:
-
-	class_(handle_type h) : object(h) {}
-
 };
 
 } // namespace scapix::jni

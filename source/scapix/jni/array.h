@@ -19,17 +19,13 @@
 namespace scapix::jni {
 
 template <array_element T>
-class array_base : public object<signature_v<T[]>>
+class array_base : public object<signature_v<array<T>>>
 {
-	using base = object<signature_v<T[]>>;
-
 public:
 
+	using array_base::object::object;
+
 	jsize size() const { return detail::env()->GetArrayLength(this->handle()); }
-
-protected:
-
-	array_base(typename base::handle_type h) : base(h) {}
 
 };
 
@@ -38,9 +34,9 @@ protected:
 template <reference T>
 class array<T> : public array_base<T>
 {
-	using base = array_base<T>;
-
 public:
+
+	using handle_type = typename array::handle_type;
 
 	class reference;
 	class const_reference;
@@ -48,7 +44,6 @@ public:
 	class const_iterator;
 
 	using value_type = ref<T>;
-	using element_type = typename ref<T>::element_type;
 	using size_type = jsize;
 	using difference_type = jsize;
 	using pointer = void;
@@ -70,10 +65,10 @@ public:
 		reference& operator = (reference&& other) { *this = other.get(); return *this; }
 
 		template <typename Y, scope Scope>
-		reference& operator = (const ref<Y, Scope>& value) { arr.set_element(pos, value); return *this; }
+		reference& operator = (const ref<Y, Scope>& value) { set_element(arr, pos, value); return *this; }
 
 		operator ref<T>() const { return get(); }
-		ref<T> get() const { return arr.get_element(pos); }
+		ref<T> get() const { return get_element(arr, pos); }
 		ref<T> operator -> () const { return get(); }
 
 	private:
@@ -81,9 +76,9 @@ public:
 		friend array;
 		friend class iterator;
 
-		reference(typename array::handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		reference(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
-		array arr;
+		handle_type arr;
 		jsize pos;
 
 	};
@@ -118,8 +113,8 @@ public:
 
 		reference operator [](difference_type n) const { return *(*this + n); }
 
-		reference operator *() const { return reference(arr.handle(), pos); }
-		reference operator ->() const { return reference(arr.handle(), pos); }
+		reference operator *() const { return reference(arr, pos); }
+		reference operator ->() const { return reference(arr, pos); }
 
 		friend bool operator == (const iterator& a, const iterator& b) { return a.pos == b.pos; }
 		friend bool operator != (const iterator& a, const iterator& b) { return a.pos != b.pos; }
@@ -139,9 +134,9 @@ public:
 
 		friend array;
 
-		iterator(typename array::handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		iterator(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
-		array arr;
+		handle_type arr;
 		jsize pos;
 
 	};
@@ -157,7 +152,7 @@ public:
 		void operator & () = delete;
 
 		operator ref<T>() const { return get(); }
-		ref<T> get() const { return arr.get_element(pos); }
+		ref<T> get() const { return get_element(arr, pos); }
 		ref<T> operator -> () const { return get(); }
 
 	private:
@@ -165,9 +160,9 @@ public:
 		friend array;
 		friend class const_iterator;
 
-		const_reference(typename array::handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		const_reference(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
-		array arr;
+		handle_type arr;
 		jsize pos;
 
 	};
@@ -202,8 +197,8 @@ public:
 
 		reference operator [](difference_type n) const { return *(*this + n); }
 
-		reference operator *() const { return reference(arr.handle(), pos); }
-		reference operator ->() const { return reference(arr.handle(), pos); }
+		reference operator *() const { return reference(arr, pos); }
+		reference operator ->() const { return reference(arr, pos); }
 
 		friend bool operator == (const const_iterator& a, const const_iterator& b) { return a.pos == b.pos; }
 		friend bool operator != (const const_iterator& a, const const_iterator& b) { return a.pos != b.pos; }
@@ -223,9 +218,9 @@ public:
 
 		friend array;
 
-		const_iterator(typename array::handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		const_iterator(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
-		array arr;
+		handle_type arr;
 		jsize pos;
 
 	};
@@ -267,9 +262,9 @@ public:
 		return (*this)[pos];
 	}
 
-	static ref<array> new_object(jsize len, ref<element_type> init = {})
+	static ref<array> new_object(jsize len, ref<T> init = {})
 	{
-		return detail::check_result<array>(detail::env()->NewObjectArray(len, object_impl_t<element_type>::class_object().handle(), init.handle()));
+		return detail::check_result<array>(detail::env()->NewObjectArray(len, object_impl_t<T>::class_object().handle(), init.handle()));
 	}
 
 	// for consistency with primitive array
@@ -277,22 +272,18 @@ public:
 	array& elements() { return *this; }
 	const array& elements() const { return *this; }
 
-protected:
-
-	array(typename base::handle_type h) : base(h) {}
-
 private:
 
-	ref<T> get_element(jsize index) const
+	static ref<T> get_element(handle_type arr, jsize index)
 	{
-		jobject element = detail::env()->GetObjectArrayElement(this->handle(), index);
+		jobject element = detail::env()->GetObjectArrayElement(arr, index);
 		detail::check_exception();
 		return local_ref<T>(element);
 	}
 
-	void set_element(jsize index, ref<T> value)
+	static void set_element(handle_type arr, jsize index, ref<T> value)
 	{
-		detail::env()->SetObjectArrayElement(this->handle(), index, value.handle());
+		detail::env()->SetObjectArrayElement(arr, index, value.handle());
 		detail::check_exception();
 	}
 
@@ -429,8 +420,6 @@ private:
 template <primitive T>
 class array<T> : public array_base<T>
 {
-	using base = array_base<T>;
-
 public:
 
 	static ref<array> new_object(jsize len)
@@ -485,10 +474,6 @@ public:
 		detail::api::type<T>::set_array_region(this->handle(), start, len, buf);
 		detail::check_exception();
 	}
-
-protected:
-
-	array(typename base::handle_type h) : base(h) {}
 
 };
 

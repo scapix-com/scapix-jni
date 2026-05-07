@@ -19,18 +19,12 @@ class function;
 template <fixed_string ClassName, typename R, typename ...Args, fixed_string Name>
 class function<ClassName, R(Args...), Name> : public object<ClassName>
 {
-	using base = object<ClassName>;
-
 public:
 
 	R call(Args... args) const
 	{
-		return base::template call_method<Name, R(Args...)>(args...);
+		return this->template call_method<Name, R(Args...)>(args...);
 	}
-
-protected:
-
-	function(typename base::handle_type h) : base(h) {}
 
 };
 

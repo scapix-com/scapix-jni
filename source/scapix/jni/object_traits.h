@@ -7,7 +7,6 @@
 #ifndef SCAPIX_JNI_OBJECT_TRAITS_H
 #define SCAPIX_JNI_OBJECT_TRAITS_H
 
-#include <scapix/jni/detail/util.h>
 #include <scapix/jni/fwd/element.h>
 
 namespace scapix::jni {
@@ -19,8 +18,8 @@ namespace scapix::jni {
 template <typename T>
 struct object_traits
 {
-	static constexpr auto class_name = detail::befriend<T, object_traits>::class_name;
-	using base_classes = typename detail::befriend<T, object_traits>::base_classes;
+	static constexpr auto class_name = T::class_name;
+	using base_classes = typename T::base_classes;
 };
 
 template <typename T>

@@ -162,10 +162,11 @@ struct is_convertible_object
 	;
 };
 
-template <object_array From, object_array To>
+template <reference From, reference To>
+	requires object_array<From> && object_array<To>
 struct is_convertible_object<From, To>
 {
-	static constexpr bool value = is_convertible_object_v<typename From::element_type, typename To::element_type>;
+	static constexpr bool value = is_convertible_object_v<typename From::value_type::element_type, typename To::value_type::element_type>;
 };
 
 // android_critical_native

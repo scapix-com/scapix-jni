@@ -20,10 +20,6 @@ public:
 		return detail::env()->Throw(handle());
 	}
 
-protected:
-
-	throwable(handle_type h) : object(h) {}
-
 };
 
 } // namespace scapix::jni

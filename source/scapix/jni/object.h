@@ -43,15 +43,30 @@ public:
 
 protected:
 
-	object(handle_type h) : impl(h), Bases(h)... {}
 	handle_type handle() const { return static_cast<handle_type>(impl::handle()); }
+
+private:
+
+	template <typename T, scope Scope>
+	friend class ref;
+
+	template <fixed_string, typename ...>
+	friend class object;
+
+	object(handle_type h) : impl(h), Bases{h}... {}
 
 };
 
 template <fixed_string ClassName>
 class object<ClassName> : public object<ClassName, object<>>
 {
-public:
+private:
+
+	template <typename T, scope Scope>
+	friend class ref;
+
+	template <fixed_string, typename ...>
+	friend class object;
 
 	using object<ClassName, object<>>::object;
 
@@ -113,7 +128,13 @@ public:
 		return local_ref<class_>(detail::env()->GetObjectClass(handle()));
 	}
 
-protected:
+private:
+
+	template <typename T, scope Scope>
+	friend class ref;
+
+	template <fixed_string, typename ...>
+	friend class object;
 
 	object(handle_type h) : object_impl(h) {}
 
