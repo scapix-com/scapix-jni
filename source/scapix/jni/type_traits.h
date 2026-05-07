@@ -113,10 +113,10 @@ constexpr std::size_t handle_type()
 
 	std::size_t result = 0;
 
-	meta::for_each<meta::iota_c<std::tuple_size_v<handle_types>>>([&](auto index)
+	meta::for_each<meta::iota_c<std::tuple_size_v<handle_types>>>([&]<typename Index>()
 	{
-		if (std::tuple_element_t<index, handle_types>::class_name == class_name)
-			result = index;
+		if (std::tuple_element_t<Index::value, handle_types>::class_name == class_name)
+			result = Index::value;
 	});
 
 	if (!result)

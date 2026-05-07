@@ -495,10 +495,9 @@ struct convert<Jni, Struct, std::enable_if_t<is_struct_v<Struct>>>
 	{
 		auto obj = new_object<struct_object, void()>();
 
-		meta::for_each<fields>([&](auto f)
+		meta::for_each<fields>([&]<typename Field>()
 		{
-			using field = decltype(f);
-			obj->template set_field<field::name, typename field::type>(convert_jni<typename field::type>(value.*field::ptr));
+			obj->template set_field<Field::name, typename Field::type>(convert_jni<typename Field::type>(value.*Field::ptr));
 		});
 
 		return obj;
@@ -508,10 +507,9 @@ struct convert<Jni, Struct, std::enable_if_t<is_struct_v<Struct>>>
 	{
 		Struct obj;
 
-		meta::for_each<fields>([&](auto f)
+		meta::for_each<fields>([&]<typename Field>()
 		{
-			using field = decltype(f);
-			obj.*field::ptr = convert_cpp<decltype(obj.*field::ptr)>(value->template get_field<field::name, typename field::type>());
+			obj.*Field::ptr = convert_cpp<decltype(obj.*Field::ptr)>(value->template get_field<Field::name, typename Field::type>());
 		});
 
 		return obj;
