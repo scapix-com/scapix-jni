@@ -93,7 +93,7 @@ template <typename Cpp, typename Jni>
 decltype(auto) convert_cpp(Jni&& jni)
 {
 	if (!jni)
-		return Cpp{};
+		return std::remove_cvref_t<Cpp>();
 
 	return convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(std::forward<Jni>(jni));
 }
