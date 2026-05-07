@@ -60,22 +60,19 @@ concept primitive_or_void = primitive<T> || std::same_as<T, void>;
 template <typename T>
 concept array_element = reference<T> || primitive<T>;
 
-// is_array
+// array
 
 template <typename T>
-struct is_array : std::integral_constant<bool, class_name_v<T>[0] == '['> {};
+concept is_array = class_name_v<T>[0] == '[';
 
 template <typename T>
-constexpr bool is_array_v = is_array<T>::value;
+concept object_array = class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[');
 
 template <typename T>
-struct is_object_array : std::integral_constant<bool, class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[')> {};
+concept primitive_array = class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[';
 
 template <typename T>
-constexpr bool is_object_array_v = is_object_array<T>::value;
-
-template <typename T>
-concept object_array = is_object_array_v<T>;
+concept numeric_array = class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[' && class_name_v<T>[1] != 'Z';
 
 // handle_type
 
