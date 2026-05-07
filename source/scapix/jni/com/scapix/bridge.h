@@ -169,7 +169,7 @@ public:
 
 } // namespace com::scapix
 
-template <class_template<com::scapix::cpp::init> T, fixed_string ClassName>
+template <specialization_of<com::scapix::cpp::init> T, fixed_string ClassName>
 T convert_this(ref<object<ClassName>> x)
 {
 	return T(std::move(ref<com::scapix::bridge_object<ClassName, typename T::type>>(x)));
