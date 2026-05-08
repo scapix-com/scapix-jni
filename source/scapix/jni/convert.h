@@ -15,7 +15,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
-#include <experimental/type_traits>
 #include <scapix/core/meta/for_each.h>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/string.h>
@@ -31,7 +30,31 @@ template <typename Jni, typename Cpp, typename = void>
 struct convert_shared;
 
 template<typename Jni, typename Cpp>
-using has_convert_shared_t = decltype(convert_shared<Jni, Cpp>::jni(std::declval<std::shared_ptr<Cpp>>()));
+concept has_convert_shared = requires(Jni jni, Cpp cpp)
+{
+	jni = convert_shared<Jni, Cpp>::jni(std::declval<std::shared_ptr<Cpp>>());
+//	cpp = convert_shared<Jni, Cpp>::cpp(std::declval<ref<Jni>>());
+};
+
+template <typename Jni, typename T>
+struct convert<Jni, std::shared_ptr<T>>
+{
+	static std::shared_ptr<T> cpp(Jni value)
+	{
+		if constexpr (has_convert_shared<Jni, T>)
+			return convert_shared<Jni, T>::cpp(value);
+		else
+			return std::make_shared<T>(convert_cpp<T>(value));
+	}
+
+	static Jni jni(std::shared_ptr<T> value)
+	{
+		if constexpr (has_convert_shared<Jni, T>)
+			return convert_shared<Jni, T>::jni(value);
+		else
+			return convert_jni<Jni>(*value);
+	}
+};
 
 template <primitive Jni, typename Cpp>
 struct convert<Jni, Cpp, std::enable_if_t<std::is_arithmetic_v<Cpp>>>
@@ -78,26 +101,6 @@ struct convert<ref<J>, Cpp, std::enable_if_t<std::is_enum_v<Cpp>>>
 	static ref<J> jni(Cpp value)
 	{
 		return convert_jni<ref<J>>(static_cast<underlying>(value));
-	}
-};
-
-template <typename Jni, typename T>
-struct convert<Jni, std::shared_ptr<T>>
-{
-	static std::shared_ptr<T> cpp(Jni value)
-	{
-		if constexpr (std::experimental::is_detected_v<has_convert_shared_t, Jni, T>)
-			return convert_shared<Jni, T>::cpp(value);
-		else
-			return std::make_shared<T>(convert_cpp<T>(value));
-	}
-
-	static Jni jni(std::shared_ptr<T> value)
-	{
-		if constexpr (std::experimental::is_detected_v<has_convert_shared_t, Jni, T>)
-			return convert_shared<Jni, T>::jni(value);
-		else
-			return convert_jni<Jni>(*value);
 	}
 };
 
