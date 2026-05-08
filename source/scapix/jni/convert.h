@@ -29,7 +29,7 @@ namespace scapix::jni {
 template <typename Jni, typename Cpp, typename = void>
 struct convert_shared;
 
-template<typename Jni, typename Cpp>
+template <typename Jni, typename Cpp>
 concept has_convert_shared = requires(Jni jni, Cpp cpp)
 {
 	jni = convert_shared<Jni, Cpp>::jni(std::declval<std::shared_ptr<Cpp>>());
