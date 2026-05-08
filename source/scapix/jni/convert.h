@@ -30,10 +30,10 @@ template <typename Jni, typename Cpp, typename = void>
 struct convert_shared;
 
 template <typename Jni, typename Cpp>
-concept has_convert_shared = requires(Jni jni, Cpp cpp)
+concept has_convert_shared = requires(Jni jni, std::shared_ptr<Cpp> cpp)
 {
-	jni = convert_shared<Jni, Cpp>::jni(std::declval<std::shared_ptr<Cpp>>());
-//	cpp = convert_shared<Jni, Cpp>::cpp(std::declval<ref<Jni>>());
+	jni = convert_shared<Jni, Cpp>::jni(cpp);
+	cpp = convert_shared<Jni, Cpp>::cpp(jni);
 };
 
 template <typename Jni, typename T>
