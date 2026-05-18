@@ -26,41 +26,24 @@
 
 namespace scapix::jni {
 
-template <typename Jni, typename Cpp, typename = void>
-struct convert_shared;
-
-template <typename Jni, typename Cpp>
-concept has_convert_shared = requires(Jni jni, std::shared_ptr<Cpp> cpp)
-{
-	jni = convert_shared<Jni, Cpp>::jni(cpp);
-	cpp = convert_shared<Jni, Cpp>::cpp(jni);
-};
-
 template <typename Jni, typename T>
 struct convert<Jni, std::shared_ptr<T>>
 {
 	static std::shared_ptr<T> cpp(Jni value)
 	{
-		if constexpr (has_convert_shared<Jni, T>)
-			return convert_shared<Jni, T>::cpp(value);
-		else
-			return std::make_shared<T>(convert_cpp<T>(value));
+		return std::make_shared<T>(convert_cpp<T>(value));
 	}
 
 	static Jni jni(std::shared_ptr<T> value)
 	{
-		if constexpr (has_convert_shared<Jni, T>)
-			return convert_shared<Jni, T>::jni(value);
-		else
-			return convert_jni<Jni>(*value);
+		return convert_jni<Jni>(*value);
 	}
 };
 
 template <primitive Jni, typename Cpp>
-struct convert<Jni, Cpp, std::enable_if_t<std::is_arithmetic_v<Cpp>>>
+	requires (std::is_integral_v<Jni> && std::is_integral_v<Cpp> && sizeof(Jni) == sizeof(Cpp)) || std::is_same_v<Jni, Cpp>
+struct convert<Jni, Cpp>
 {
-	static_assert((std::is_integral_v<Jni> && std::is_integral_v<Cpp> && sizeof(Jni) == sizeof(Cpp)) || std::is_same_v<Jni, Cpp>);
-
 	static Cpp cpp(Jni v)
 	{
 		return v;
@@ -73,10 +56,9 @@ struct convert<Jni, Cpp, std::enable_if_t<std::is_arithmetic_v<Cpp>>>
 };
 
 template <typename Jni, typename Cpp>
-struct convert<Jni, Cpp, std::enable_if_t<std::is_enum_v<Cpp>>>
+	requires std::is_integral_v<Jni> && std::is_enum_v<Cpp> && (sizeof(Jni) == sizeof(Cpp))
+struct convert<Jni, Cpp>
 {
-	static_assert(std::is_integral_v<Jni> && sizeof(Jni) == sizeof(Cpp));
-
 	static Cpp cpp(Jni value)
 	{
 		return static_cast<Cpp>(value);
@@ -89,7 +71,8 @@ struct convert<Jni, Cpp, std::enable_if_t<std::is_enum_v<Cpp>>>
 };
 
 template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<std::is_enum_v<Cpp>>>
+	requires std::is_enum_v<Cpp>
+struct convert<ref<J>, Cpp>
 {
 	using underlying = std::underlying_type_t<Cpp>;
 
@@ -161,55 +144,46 @@ struct convert<ref<J>, Cpp> : convert_string
 {
 };
 
-template <typename Object, typename CppPrimitive, typename JniPrimitive, fixed_string MethodName>
+template <fixed_string ClassName, typename CppPrimitive, typename JniPrimitive, fixed_string MethodName>
 struct convert_primitive_object
 {
-	static CppPrimitive cpp(ref<Object> obj)
+	static CppPrimitive cpp(ref<object<ClassName>> obj)
 	{
 		return obj->template call_method<MethodName, JniPrimitive()>();
 	}
 
-	static ref<Object> jni(CppPrimitive value)
+	static ref<object<ClassName>> jni(CppPrimitive value)
 	{
-		return Object::template call_static_method<"valueOf", ref<Object>(JniPrimitive)>(value);
+		return object<ClassName>::template call_static_method<"valueOf", ref<object<ClassName>>(JniPrimitive)>(value);
 	}
 };
 
-using java_lang_boolean = object<"java/lang/Boolean">;
-template <typename J> struct convert<ref<J>, bool, std::enable_if_t<is_convertible_object_v<J, java_lang_boolean>>> :
-convert_primitive_object<java_lang_boolean, bool, jboolean, "booleanValue"> {};
+template <typename T>
+concept integer = std::is_integral_v<T> && !std::same_as<T, bool>;
 
-using java_lang_byte = object<"java/lang/Byte">;
+template <typename T, typename I>
+concept same_size_integer = integer<T> && integer<I> && sizeof(T) == sizeof(I);
 
-template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, java_lang_byte> && std::is_integral_v<Cpp> && sizeof(Cpp) == sizeof(std::int8_t)>> :
-convert_primitive_object<java_lang_byte, Cpp, jbyte, "byteValue"> {};
+template <object_convertible_to<object<"java/lang/Boolean">> J>
+struct convert<ref<J>, bool> : convert_primitive_object<"java/lang/Boolean", bool, jboolean, "booleanValue"> {};
 
-using java_lang_short = object<"java/lang/Short">;
+template <object_convertible_to<object<"java/lang/Byte">> J, same_size_integer<std::int8_t> Cpp>
+struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Byte", Cpp, jbyte, "byteValue"> {};
 
-template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, java_lang_short> && std::is_integral_v<Cpp> && sizeof(Cpp) == sizeof(std::int16_t)>> :
-convert_primitive_object<java_lang_short, Cpp, jshort, "shortValue"> {};
+template <object_convertible_to<object<"java/lang/Short">> J, same_size_integer<std::int16_t> Cpp>
+struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Short", Cpp, jshort, "shortValue"> {};
 
-using java_lang_integer = object<"java/lang/Integer">;
+template <object_convertible_to<object<"java/lang/Integer">> J, same_size_integer<std::int32_t> Cpp>
+struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Integer", Cpp, jint, "intValue"> {};
 
-template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, java_lang_integer> && std::is_integral_v<Cpp> && sizeof(Cpp) == sizeof(std::int32_t)>> :
-convert_primitive_object<java_lang_integer, Cpp, jint, "intValue"> {};
+template <object_convertible_to<object<"java/lang/Long">> J, same_size_integer<std::int64_t> Cpp>
+struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Long", Cpp, jlong, "longValue"> {};
 
-using java_lang_long = object<"java/lang/Long">;
+template <object_convertible_to<object<"java/lang/Float">> J>
+struct convert<ref<J>, float> : convert_primitive_object<"java/lang/Float", float, jfloat, "floatValue"> {};
 
-template <typename J, typename Cpp>
-struct convert<ref<J>, Cpp, std::enable_if_t<is_convertible_object_v<J, java_lang_long> && std::is_integral_v<Cpp> && sizeof(Cpp) == sizeof(std::int64_t)>> :
-convert_primitive_object<java_lang_long, Cpp, jlong, "longValue"> {};
-
-using java_lang_float = object<"java/lang/Float">;
-template <typename J> struct convert<ref<J>, float, std::enable_if_t<is_convertible_object_v<J, java_lang_float>>> :
-convert_primitive_object<java_lang_float, float, jfloat, "floatValue"> {};
-
-using java_lang_double = object<"java/lang/Double">;
-template <typename J> struct convert<ref<J>, double, std::enable_if_t<is_convertible_object_v<J, java_lang_double>>> :
-convert_primitive_object<java_lang_double, double, jdouble, "doubleValue"> {};
+template <object_convertible_to<object<"java/lang/Double">> J>
+struct convert<ref<J>, double> : convert_primitive_object<"java/lang/Double", double, jdouble, "doubleValue"> {};
 
 template <primitive J, typename T, typename A>
 struct convert<ref<array<J>>, std::vector<T, A>>
@@ -489,7 +463,8 @@ struct convert<ref<function<ClassName, JniR(JniArgs...), Name>>, std::function<R
 };
 
 template <typename Jni, typename Struct>
-struct convert<Jni, Struct, std::enable_if_t<is_struct_v<Struct>>>
+	requires is_struct_v<Struct>
+struct convert<Jni, Struct>
 {
 	using struct_object = object<struct_<Struct>::class_name>;
 	using fields = typename struct_<Struct>::fields;

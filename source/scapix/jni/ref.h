@@ -59,7 +59,7 @@ using canonical_ref_t = typename canonical_ref<T>::type;
 
 // convert
 
-template <typename Jni, typename Cpp, typename = void>
+template <typename Jni, typename Cpp>
 struct convert;
 
 template <typename Jni, typename Cpp>
