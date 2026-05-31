@@ -35,7 +35,7 @@ struct redirector
 // is_ref
 
 template <typename R>
-concept is_ref_v = requires (R r)
+concept is_ref = requires (R r)
 {
 	[] <typename T, scope Scope> (ref<T, Scope>&) {}(r);
 };
@@ -78,13 +78,13 @@ decltype(auto) convert_cpp(Jni&& jni)
 }
 
 template<typename Jni, typename Cpp>
-concept has_convert_jni = !is_ref_v<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+concept has_convert_jni = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
 {
 	jni = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(cpp);
 };
 
 template<typename Jni, typename Cpp>
-concept has_convert_cpp = !is_ref_v<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+concept has_convert_cpp = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
 {
 	cpp = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(jni);
 };
