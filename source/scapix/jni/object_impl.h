@@ -28,13 +28,13 @@ public:
 
 	// call_method
 
-	template <fixed_string Name, typename Type, typename ...Args>
+	template <fixed_string Name, method Type, typename ...Args>
 	auto call_method(Args&&... args) const
 	{
 		return call_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <typename Type, typename ...Args>
+	template <method Type, typename ...Args>
 	auto call_method(jmethodID id, Args&&... args) const
 	{
 		return detail::api::call<Type>::method(handle(), id, std::forward<Args>(args)...);
@@ -42,13 +42,13 @@ public:
 
 	// call_nonvirtual_method
 
-	template <fixed_string Name, typename Type, typename ...Args>
+	template <fixed_string Name, method Type, typename ...Args>
 	auto call_nonvirtual_method(Args&&... args) const
 	{
 		return call_nonvirtual_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <typename Type, typename ...Args>
+	template <method Type, typename ...Args>
 	auto call_nonvirtual_method(jmethodID id, Args&&... args) const
 	{
 		return detail::api::call<Type>::nonvirtual_method(handle(), class_object().handle(), id, std::forward<Args>(args)...);
@@ -56,13 +56,13 @@ public:
 
 	// call_static_method
 
-	template <fixed_string Name, typename Type, typename ...Args>
+	template <fixed_string Name, method Type, typename ...Args>
 	static auto call_static_method(Args&&... args)
 	{
 		return call_static_method<Type>(static_method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <typename Type, typename ...Args>
+	template <method Type, typename ...Args>
 	static auto call_static_method(jmethodID id, Args&&... args)
 	{
 		return detail::api::call<Type>::static_method(class_object().handle(), id, std::forward<Args>(args)...);
@@ -126,10 +126,10 @@ public:
 
 	// reflect
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, method Type>
 	static ref<object<"java/lang/reflect/Executable">> to_reflected_method();
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, method Type>
 	static ref<object<"java/lang/reflect/Executable">> to_reflected_static_method();
 
 	template <fixed_string Name, typename Type>
@@ -149,13 +149,18 @@ protected:
 
 private:
 
+	object_impl(const object_impl&) = delete;
+	object_impl(object_impl&&) = delete;
+	object_impl& operator = (const object_impl&) = delete;
+	object_impl& operator = (object_impl&&) = delete;
+
 	template <typename /*reference*/ Object, typename Type, typename ...Args>
 	friend ref<Object> new_object(Args&&... args); // requires requires { element_type_t<Object>::class_name; };
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, method Type>
 	static jmethodID method_id();
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, method Type>
 	static jmethodID static_method_id();
 
 	template <fixed_string Name, typename Type>
@@ -201,14 +206,14 @@ ref<Object> new_object(Args&&... args) requires requires { element_type_t<Object
 namespace scapix::jni {
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, method Type>
 inline ref<object<"java/lang/reflect/Executable">> object_impl<ClassName>::to_reflected_method()
 {
 	return class_object()->to_reflected_method(method_id<Name, Type>(), false);
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, method Type>
 inline ref<object<"java/lang/reflect/Executable">> object_impl<ClassName>::to_reflected_static_method()
 {
 	return class_object()->to_reflected_method(static_method_id<Name, Type>(), true);
@@ -242,7 +247,7 @@ inline ref<class_> object_impl<ClassName>::class_object()
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, method Type>
 inline jmethodID object_impl<ClassName>::method_id()
 {
 	static const jmethodID id(class_object()->get_method_id(Name, signature_v<Type>));
@@ -250,7 +255,7 @@ inline jmethodID object_impl<ClassName>::method_id()
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, method Type>
 inline jmethodID object_impl<ClassName>::static_method_id()
 {
 	static const jmethodID id(class_object()->get_static_method_id(Name, signature_v<Type>));
