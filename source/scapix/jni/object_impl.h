@@ -13,8 +13,8 @@
 #include <scapix/jni/type_traits.h>
 #include <scapix/jni/object_traits.h>
 #include <scapix/jni/fwd/ref.h>
+#include <scapix/jni/fwd/object.h>
 #include <scapix/jni/fwd/class.h>
-#include <scapix/jni/fwd/element.h>
 
 namespace scapix::jni {
 
@@ -25,6 +25,20 @@ class object_impl
 	using handle_type = jobject;
 
 public:
+
+	// new_object
+
+	template <init_method Type, typename ...Args>
+	static auto new_object(Args&&... args)
+	{
+		return new_object<Type>(method_id<"<init>", Type>(), std::forward<Args>(args)...);
+	}
+
+	template <init_method Type, typename ...Args>
+	static auto new_object(jmethodID id, Args&&... args)
+	{
+		return detail::api::call<Type>::template new_object<object<ClassName>>(class_object().handle(), id, std::forward<Args>(args)...);
+	}
 
 	// call_method
 
@@ -154,9 +168,6 @@ private:
 	object_impl& operator = (const object_impl&) = delete;
 	object_impl& operator = (object_impl&&) = delete;
 
-	template <typename /*reference*/ Object, typename Type, typename ...Args>
-	friend ref<Object> new_object(Args&&... args); // requires requires { element_type_t<Object>::class_name; };
-
 	template <fixed_string Name, method Type>
 	static jmethodID method_id();
 
@@ -176,17 +187,10 @@ private:
 template <reference T>
 using object_impl_t = object_impl<class_name_v<T>>;
 
-template <reference Object, typename Type, typename ...Args>
-ref<Object> new_object(jmethodID id, Args&&... args) requires requires { element_type_t<Object>::class_name; }
+template <reference Object, init_method Type, typename ...Args>
+ref<Object> new_object(Args&&... args)
 {
-	return detail::api::call<Type>::template new_object<element_type_t<Object>>(object_impl_t<Object>::class_object().handle(), id, std::forward<Args>(args)...);
-}
-
-// https://github.com/llvm/llvm-project/issues/63536
-template <typename /*reference*/ Object, typename Type, typename ...Args>
-ref<Object> new_object(Args&&... args) // requires requires { element_type_t<Object>::class_name; }
-{
-	return new_object<Object, Type>(object_impl_t<Object>::template method_id<"<init>", Type>(), std::forward<Args>(args)...);
+	return object_impl_t<Object>::template new_object<Type>(std::forward<Args>(args)...);
 }
 
 template <reference Object, typename ...Args>

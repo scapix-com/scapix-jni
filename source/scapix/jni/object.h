@@ -28,6 +28,7 @@ public:
 	using base_classes = std::tuple<Bases...>;
 	using handle_type = handle_type_t<object>;
 
+	using impl::new_object;
 	using impl::call_method;
 	using impl::call_nonvirtual_method;
 	using impl::call_static_method;
@@ -90,6 +91,7 @@ public:
 	using base_classes = std::tuple<>;
 	using handle_type = handle_type_t<object>;
 
+	using object_impl::new_object;
 	using object_impl::call_method;
 	using object_impl::call_nonvirtual_method;
 	using object_impl::call_static_method;
