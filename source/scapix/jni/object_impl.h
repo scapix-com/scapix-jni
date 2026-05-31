@@ -15,6 +15,7 @@
 #include <scapix/jni/fwd/ref.h>
 #include <scapix/jni/fwd/object.h>
 #include <scapix/jni/fwd/class.h>
+#include <scapix/jni/element.h>
 
 namespace scapix::jni {
 
