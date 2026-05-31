@@ -63,16 +63,16 @@ concept array_element = reference<T> || primitive<T>;
 // array
 
 template <typename T>
-concept is_array = class_name_v<T>[0] == '[';
+concept is_array = reference<T> && class_name_v<T>[0] == '[';
 
 template <typename T>
-concept object_array = class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[');
+concept object_array = reference<T> && class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[');
 
 template <typename T>
-concept primitive_array = class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[';
+concept primitive_array = reference<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[';
 
 template <typename T>
-concept numeric_array = class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[' && class_name_v<T>[1] != 'Z';
+concept numeric_array = reference<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[' && class_name_v<T>[1] != 'Z';
 
 // handle_type
 
@@ -138,16 +138,16 @@ using handle_type_t = typename std::tuple_element_t<detail::handle_type<T>(), de
 
 // is_convertible_object
 
-template <typename From, typename To>
+template <reference From, reference To>
 struct is_convertible_object;
 
-template <typename From, typename To>
+template <reference From, reference To>
 constexpr bool is_convertible_object_v = is_convertible_object<From, To>::value;
 
 template <typename From, typename To>
 concept object_convertible_to = is_convertible_object_v<From, To>;
 
-template <typename From, typename To>
+template <reference From, reference To>
 struct is_convertible_object
 {
 	template <typename T>
