@@ -165,6 +165,22 @@ struct is_convertible_object<From, To>
 	static constexpr bool value = is_convertible_object_v<typename From::value_type::element_type, typename To::value_type::element_type>;
 };
 
+// method
+
+template <typename F>
+concept method = requires (F * f)
+{
+	[] <typename R, typename ...Args> (R(*)(Args...)) {}(f);
+};
+
+// init_method
+
+template <typename F>
+concept init_method = requires (F * f)
+{
+	[] <typename ...Args> (void(*)(Args...)) {}(f);
+};
+
 // android_critical_native
 
 template <typename F>
