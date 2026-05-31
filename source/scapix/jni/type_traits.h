@@ -167,14 +167,11 @@ struct is_convertible_object<From, To>
 
 // android_critical_native
 
-template <typename T>
-struct is_android_critical_native : std::false_type {};
-
-template <primitive_or_void R, primitive ...Args>
-struct is_android_critical_native<R(Args...)> : std::true_type {};
-
-template <typename T>
-concept android_critical_native = is_android_critical_native<T>::value;
+template <typename F>
+concept android_critical_native = requires (F * f)
+{
+	[] <primitive_or_void R, primitive ...Args> (R(*)(Args...)) {}(f);
+};
 
 } // namespace scapix::jni
 
