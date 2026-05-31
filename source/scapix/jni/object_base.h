@@ -50,7 +50,6 @@ protected:
 	using impl::set_field;
 	using impl::get_static_field;
 	using impl::set_static_field;
-	using impl::class_object;
 
 private:
 
