@@ -168,7 +168,7 @@ struct is_convertible_object<From, To>
 // method
 
 template <typename F>
-concept method = requires (F * f)
+concept method = requires (F* f)
 {
 	[] <typename R, typename ...Args> (R(*)(Args...)) {}(f);
 };
@@ -176,7 +176,7 @@ concept method = requires (F * f)
 // init_method
 
 template <typename F>
-concept init_method = requires (F * f)
+concept init_method = requires (F* f)
 {
 	[] <typename ...Args> (void(*)(Args...)) {}(f);
 };
@@ -184,7 +184,7 @@ concept init_method = requires (F * f)
 // android_critical_native
 
 template <typename F>
-concept android_critical_native = requires (F * f)
+concept android_critical_native = requires (F* f)
 {
 	[] <primitive_or_void R, primitive ...Args> (R(*)(Args...)) {}(f);
 };
