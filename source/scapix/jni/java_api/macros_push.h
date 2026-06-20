@@ -568,3 +568,6 @@
 #pragma push_macro("WIFSIGNALED")
 #undef WIFSIGNALED
 
+#pragma push_macro("DOMAIN")
+#undef DOMAIN
+

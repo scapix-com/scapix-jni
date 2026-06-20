@@ -188,3 +188,4 @@
 #pragma pop_macro("WIFSIGNALED")
 #pragma pop_macro("WIFSIGNALED")
 #pragma pop_macro("WIFSIGNALED")
+#pragma pop_macro("DOMAIN")
