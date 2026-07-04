@@ -11,6 +11,7 @@
 #include <scapix/jni/ref.h>
 #include <scapix/jni/array.h>
 #include <scapix/jni/convert.h>
+#include <scapix/jni/object_traits.h>
 
 namespace scapix::java_api {
 
