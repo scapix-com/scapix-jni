@@ -92,7 +92,7 @@ struct native_method_helper<R(Args...) noexcept>
 // For an instance method, the first parameter must be ref<object<"com/example/MyClass">> (or compatible).
 // For a static method, the first parameter must be ref<class_> (or compatible).
 // If all parameters are JNI types, JNI signature can be deduced.
-// If you ommit ref<class_> first parameter for a static method or use any C++ type parameters, you must specify JNI signature.
+// If you omit ref<class_> first parameter for a static method or use any C++ type parameters, you must specify JNI signature.
 // Additionally, you can specify C++ signature to select overload.
 
 // Both types specified - use CppType to select overload.
