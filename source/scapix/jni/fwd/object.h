@@ -23,6 +23,20 @@ struct object_traits<object<ClassName, Bases...>>
 	using base_classes = std::tuple<Bases...>;
 };
 
+template <fixed_string ClassName>
+struct object_traits<object<ClassName>>
+{
+	static constexpr auto class_name = ClassName;
+	using base_classes = std::tuple<object<>>;
+};
+
+template<>
+struct object_traits<object<"java/lang/Object">>
+{
+	static constexpr fixed_string class_name = "java/lang/Object";
+	using base_classes = std::tuple<>;
+};
+
 } // namespace scapix::jni
 
 #endif // SCAPIX_JNI_FWD_OBJECT_H
