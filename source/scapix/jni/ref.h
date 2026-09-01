@@ -26,8 +26,8 @@ namespace scapix::jni {
 template <typename T>
 struct redirector
 {
-	T* operator -> () && { return &value; }
-	const T* operator -> () const && { return &value; }
+	T* operator -> () && noexcept { return &value; }
+	const T* operator -> () const && noexcept { return &value; }
 
 	T value;
 };
@@ -95,10 +95,10 @@ public:
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
 
-	constexpr scope get_scope() { return Scope; }
+	constexpr scope get_scope() noexcept { return Scope; }
 
-	ref(std::nullptr_t = nullptr) : object(nullptr) {}
-	explicit ref(jobject h) : object(h) {}
+	ref(std::nullptr_t = nullptr) noexcept : object(nullptr) {}
+	explicit ref(jobject h) noexcept : object(h) {}
 
 	ref(const ref& r) : object(new_ref(r)) {}
 
@@ -106,6 +106,9 @@ public:
 	ref(const ref<Y, S>& r) : object(new_ref(r)) {}
 
 	ref(ref&& r) noexcept : object(r.release()) {}
+
+	template <object_convertible_to<element_type> Y>
+	ref(ref<Y, Scope>&& r) noexcept : object(r.release()) {}
 
 	template <object_convertible_to<element_type> Y, scope S>
 	ref(ref<Y, S>&& r) : object(Scope == r.get_scope() ? r.release() : new_ref(r)) {}
@@ -129,47 +132,47 @@ public:
 		return *this;
 	}
 
-	ref& operator = (ref&& r)
+	ref& operator = (ref&& r) noexcept
 	{
 		ref(std::move(r)).swap(*this);
 		return *this;
 	}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref& operator = (ref<Y, S>&& r)
+	ref& operator = (ref<Y, S>&& r) noexcept (Scope == S)
 	{
 		ref(std::move(r)).swap(*this);
 		return *this;
 	}
 
-	redirector<element_type> operator -> () { return redirector<element_type>(get()); }
-	const redirector<element_type> operator -> () const { return redirector<element_type>(get()); }
-	element_type operator * () { return get(); }
-	const element_type operator * () const { return get(); }
+	redirector<element_type> operator -> () noexcept { return redirector<element_type>(get()); }
+	const redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
+	element_type operator * () noexcept { return get(); }
+	const element_type operator * () const noexcept { return get(); }
 
 	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
 
-	explicit operator bool() const { return handle() != nullptr; }
-	element_type get() const { return element_type{ handle() }; }
+	explicit operator bool() const noexcept { return handle() != nullptr; }
+	element_type get() const noexcept { return element_type{ handle() }; }
 
-	auto handle() const
+	auto handle() const noexcept
 	{
 		return static_cast<handle_type>(object);
 	}
 
-	void reset(jobject h = nullptr)
+	void reset(jobject h = nullptr) noexcept
 	{
 		ref(h).swap(*this);
 	}
 
-	auto release()
+	auto release() noexcept
 	{
 		auto temp(handle());
 		object = nullptr;
 		return temp;
 	}
 
-	void swap (ref& r)
+	void swap (ref& r) noexcept
 	{
 		using std::swap;
 		swap (object, r.object);
@@ -206,21 +209,21 @@ public:
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
 
-	scope get_scope() { return scp; }
+	scope get_scope() noexcept { return scp; }
 
-	ref(std::nullptr_t = nullptr) : object(nullptr), scp(scope::generic) {}
+	ref(std::nullptr_t = nullptr) noexcept : object(nullptr), scp(scope::generic) {}
 
-	explicit(!std::is_same_v<ref, ref<>>) ref(jobject h) : object(h), scp(scope::generic) {}
+	explicit(!std::is_same_v<ref, ref<>>) ref(jobject h) noexcept : object(h), scp(scope::generic) {}
 
-	ref(const ref& r) : object(r.handle()), scp(scope::generic) {}
+	ref(const ref& r) noexcept : object(r.handle()), scp(scope::generic) {}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref(const ref<Y, S>& r) : object(r.handle()), scp(scope::generic) {}
+	ref(const ref<Y, S>& r) noexcept : object(r.handle()), scp(scope::generic) {}
 
 	ref(ref&& r) noexcept : object(r.release()), scp(r.get_scope()) {}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref(ref<Y, S>&& r) : object(r.release()), scp(r.get_scope()) {}
+	ref(ref<Y, S>&& r) noexcept : object(r.release()), scp(r.get_scope()) {}
 
 	template <typename X>
 		requires has_convert_jni<ref, X>
@@ -255,60 +258,60 @@ public:
 		}
 	}
 
-	ref& operator = (const ref& r)
+	ref& operator = (const ref& r) noexcept
 	{
 		ref(r).swap(*this);
 		return *this;
 	}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref& operator = (const ref<Y, S>& r)
+	ref& operator = (const ref<Y, S>& r) noexcept
 	{
 		ref(r).swap(*this);
 		return *this;
 	}
 
-	ref& operator = (ref&& r)
+	ref& operator = (ref&& r) noexcept
 	{
 		ref(std::move(r)).swap(*this);
 		return *this;
 	}
 
 	template <object_convertible_to<element_type> Y, scope S>
-	ref& operator = (ref<Y, S>&& r)
+	ref& operator = (ref<Y, S>&& r) noexcept
 	{
 		ref(std::move(r)).swap(*this);
 		return *this;
 	}
 
-	redirector<element_type> operator -> () { return redirector<element_type>(get()); }
-	const redirector<element_type> operator -> () const { return redirector<element_type>(get()); }
-	element_type operator * () { return get(); }
-	const element_type operator * () const { return get(); }
+	redirector<element_type> operator -> () noexcept { return redirector<element_type>(get()); }
+	const redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
+	element_type operator * () noexcept { return get(); }
+	const element_type operator * () const noexcept { return get(); }
 
 	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
 
-	explicit operator bool() const { return handle() != nullptr; }
-	element_type get() const { return element_type{ handle() }; }
+	explicit operator bool() const noexcept { return handle() != nullptr; }
+	element_type get() const noexcept { return element_type{ handle() }; }
 
-	auto handle() const
+	auto handle() const noexcept
 	{
 		return static_cast<handle_type>(object);
 	}
 
-	void reset(jobject h = nullptr)
+	void reset(jobject h = nullptr) noexcept
 	{
 		ref(h).swap(*this);
 	}
 
-	auto release()
+	auto release() noexcept
 	{
 		auto temp(handle());
 		object = nullptr;
 		return temp;
 	}
 
-	void swap (ref& r)
+	void swap (ref& r) noexcept
 	{
 		using std::swap;
 		swap (object, r.object);
@@ -350,19 +353,19 @@ template <typename T = object<>>
 using weak_ref = ref<T, scope::weak>;
 
 template <typename T, scope Scope>
-inline void swap(ref<T, Scope>& a, ref<T, Scope>& b)
+inline void swap(ref<T, Scope>& a, ref<T, Scope>& b) noexcept
 {
 	a.swap(b);
 }
 
 template <typename T1, scope S1, typename T2, scope S2>
-inline bool operator ==(const ref<T1, S1>& a, const ref<T2, S2>& b)
+inline bool operator == (const ref<T1, S1>& a, const ref<T2, S2>& b)
 {
 	return detail::env()->IsSameObject(a.handle(), b.handle());
 }
 
 template <typename T1, scope S1, typename T2, scope S2>
-inline bool operator !=(const ref<T1, S1>& a, const ref<T2, S2>& b)
+inline bool operator != (const ref<T1, S1>& a, const ref<T2, S2>& b)
 {
 	return !(a == b);
 }
