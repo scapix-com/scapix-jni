@@ -14,6 +14,9 @@
 #include <scapix/jni/signature.h>
 #include <scapix/jni/detail/exception.h>
 
+// provides functionality for <ref.h> but needs to be included after <object.h>
+#include <scapix/jni/compare.h>
+
 namespace scapix::jni {
 
 class class_ : public object<"java/lang/Class">
