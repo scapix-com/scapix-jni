@@ -20,7 +20,7 @@ template<>
 struct object_traits<string>
 {
 	static constexpr fixed_string class_name = "java/lang/String";
-	using base_classes = std::tuple<object<>>;
+	using base_classes = std::tuple<object<"java/lang/Comparable">>;
 };
 
 } // namespace scapix::jni

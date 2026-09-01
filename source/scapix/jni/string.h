@@ -127,7 +127,7 @@ private:
 
 };
 
-class string : public object<"java/lang/String">
+class string : public object<"java/lang/String", object<"java/lang/Comparable">>
 {
 public:
 
