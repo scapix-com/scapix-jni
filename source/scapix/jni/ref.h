@@ -336,10 +336,20 @@ private:
 //
 // MSVC - VS 2019 16.7
 // GCC - 10
-// Clang - not supported as of clang 17
+// Clang - 19
+
+// This explicit deduction guide allows to write:
+//
+// ref<Type> r;
+// global_ref(r);
+//
+// instead of:
+//
+// ref<Type> r;
+// global_ref<Type>(r);
 
 #if 0 // __cpp_deduction_guides >= 201907L
-template <typename T, scope Scope, scope Scope2>
+template <typename T, scope Scope, scope Scope2 = scope::generic>
 ref(ref<T, Scope>) -> ref<T, Scope2>;
 #endif
 
