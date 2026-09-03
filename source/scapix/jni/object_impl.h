@@ -8,6 +8,7 @@
 #define SCAPIX_JNI_OBJECT_IMPL_H
 
 #include <utility>
+#include <scapix/core/immortal.h>
 #include <scapix/core/fixed_string.h>
 #include <scapix/jni/detail/api.h>
 #include <scapix/jni/type_traits.h>
@@ -243,9 +244,9 @@ inline ref<class_> object_impl<ClassName>::class_object()
 {
 
 #ifdef SCAPIX_JNI_CACHE_CLASS_LOADER
-	static const static_global_ref<class_> cls(class_loader::find_class(ClassName.replace('/', '.')));
+	static const immortal<global_ref<class_>> cls(class_loader::find_class(ClassName.replace('/', '.')));
 #else
-	static const static_global_ref<class_> cls(class_::find_class(ClassName));
+	static const immortal<global_ref<class_>> cls(class_::find_class(ClassName));
 #endif
 
 	return cls;

@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <scapix/core/immortal.h>
 #include <scapix/core/meta/for_each.h>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/string.h>
@@ -96,7 +97,7 @@ struct convert_string
 
 	static ref<charset> utf8_charset()
 	{
-		static const static_global_ref<charset> ch = standard_charsets::get_static_field<"UTF_8", ref<charset>>();
+		static const immortal<global_ref<charset>> ch = standard_charsets::get_static_field<"UTF_8", ref<charset>>();
 		return ch;
 	}
 

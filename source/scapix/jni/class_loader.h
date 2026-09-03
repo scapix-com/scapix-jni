@@ -10,6 +10,7 @@
 #ifndef SCAPIX_JNI_CLASS_LOADER_H
 #define SCAPIX_JNI_CLASS_LOADER_H
 
+#include <scapix/core/immortal.h>
 #include <scapix/jni/class.h>
 #include <scapix/jni/string.h>
 
@@ -26,14 +27,14 @@ This implements the option "Cache a reference to the ClassLoader object somewher
 template<>
 inline ref<class_> object_impl<"java/lang/Thread">::class_object()
 {
-	static const static_global_ref<class_> cls(class_::find_class(class_name));
+	static const immortal<global_ref<class_>> cls(class_::find_class(class_name));
 	return cls;
 }
 
 template<>
 inline ref<class_> object_impl<"java/lang/ClassLoader">::class_object()
 {
-	static const static_global_ref<class_> cls(class_::find_class(class_name));
+	static const immortal<global_ref<class_>> cls(class_::find_class(class_name));
 	return cls;
 }
 
@@ -53,7 +54,7 @@ public:
 
 private:
 
-	inline static static_global_ref<object<"java/lang/ClassLoader">> loader;
+	inline static immortal<global_ref<object<"java/lang/ClassLoader">>> loader;
 
 };
 
