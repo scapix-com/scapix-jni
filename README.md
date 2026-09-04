@@ -32,7 +32,8 @@ void test()
 ```
 
 [Documentation](https://www.scapix.com/jni)\
-[Example](https://github.com/scapix-com/example2)
+[Example1](https://github.com/scapix-com/scapix-jni-example1)\
+[Example2](https://github.com/scapix-com/scapix-jni-example2)
 
 ## License
 
