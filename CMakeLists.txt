@@ -6,9 +6,62 @@ option(SCAPIX_JNI_CACHE_CLASS_LOADER "" ON)
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "" ON)
 option(SCAPIX_JNI_STANDARD_UTF8 "" ON)
 
+if(ANDROID)
+
+    # SCAPIX_JNI_PLATFORM_CLASSES
+    # For Android, this is the path to the android.jar file.
+
+    file(GLOB PLATFORM_FOLDERS "${CMAKE_ANDROID_NDK}/../../platforms/android-*")
+    list(SORT PLATFORM_FOLDERS)
+    list(GET PLATFORM_FOLDERS -1 HIGHEST_PLATFORM_DIR)
+    cmake_path(NORMAL_PATH HIGHEST_PLATFORM_DIR)
+    set(SCAPIX_JNI_PLATFORM_CLASSES "${HIGHEST_PLATFORM_DIR}/android.jar" CACHE FILEPATH "Path to Java platform classes")
+
+else()
+
+    # Save CMAKE_FIND_FRAMEWORK
+    if(DEFINED CMAKE_FIND_FRAMEWORK)
+        set(SCAPIX_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
+    else()
+        unset(SCAPIX_CMAKE_FIND_FRAMEWORK)
+    endif()
+
+    set(CMAKE_FIND_FRAMEWORK LAST)
+    find_package(JNI REQUIRED)
+
+    # Restore CMAKE_FIND_FRAMEWORK
+    if(DEFINED SCAPIX_CMAKE_FIND_FRAMEWORK)
+        set(CMAKE_FIND_FRAMEWORK ${SCAPIX_CMAKE_FIND_FRAMEWORK})
+        unset(SCAPIX_CMAKE_FIND_FRAMEWORK)
+    else()
+        unset(CMAKE_FIND_FRAMEWORK)
+    endif()
+
+    find_package(Java REQUIRED COMPONENTS Development)
+    include(UseJava)
+
+    # SCAPIX_JNI_PLATFORM_CLASSES
+    # For JDK, this is the path to the jmods directory.
+    # For JDK-8, this is the path to the "lib/ct.sym" file.
+
+    get_filename_component(JDK_HOME "${Java_JAVAC_EXECUTABLE}/../.." ABSOLUTE)
+
+    if(Java_VERSION_MAJOR EQUAL 1)
+        set(SCAPIX_JNI_PLATFORM_CLASSES "${JDK_HOME}/lib/ct.sym" CACHE FILEPATH "Path to Java platform classes")
+    else()
+        set(SCAPIX_JNI_PLATFORM_CLASSES "${JDK_HOME}/jmods" CACHE PATH "Path to Java platform classes")
+    endif()
+
+endif()
+
 message(STATUS "SCAPIX_JNI_CACHE_CLASS_LOADER: ${SCAPIX_JNI_CACHE_CLASS_LOADER}")
 message(STATUS "SCAPIX_JNI_AUTO_ATTACH_THREAD: ${SCAPIX_JNI_AUTO_ATTACH_THREAD}")
 message(STATUS "SCAPIX_JNI_STANDARD_UTF8: ${SCAPIX_JNI_STANDARD_UTF8}")
+message(STATUS "SCAPIX_JNI_PLATFORM_CLASSES: ${SCAPIX_JNI_PLATFORM_CLASSES}")
+
+if(NOT EXISTS ${SCAPIX_JNI_PLATFORM_CLASSES})
+    message(WARNING "SCAPIX_JNI_PLATFORM_CLASSES not found at: ${SCAPIX_JNI_PLATFORM_CLASSES}")
+endif()
 
 add_library(scapix_jni)
 add_library(scapix::jni ALIAS scapix_jni)
@@ -46,29 +99,9 @@ else()
 endif()
 
 if(NOT ANDROID)
-    # Save CMAKE_FIND_FRAMEWORK
-    if(DEFINED CMAKE_FIND_FRAMEWORK)
-        set(SCAPIX_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
-    else()
-        unset(SCAPIX_CMAKE_FIND_FRAMEWORK)
-    endif()
-
-    set(CMAKE_FIND_FRAMEWORK LAST)
-    find_package(JNI REQUIRED)
-
-    # Restore CMAKE_FIND_FRAMEWORK
-    if(DEFINED SCAPIX_CMAKE_FIND_FRAMEWORK)
-        set(CMAKE_FIND_FRAMEWORK ${SCAPIX_CMAKE_FIND_FRAMEWORK})
-        unset(SCAPIX_CMAKE_FIND_FRAMEWORK)
-    else()
-        unset(CMAKE_FIND_FRAMEWORK)
-    endif()
 
     target_include_directories(scapix_jni PUBLIC ${JNI_INCLUDE_DIRS})
     target_link_libraries(scapix_jni PUBLIC ${JNI_LIBRARIES})
-
-    find_package(Java REQUIRED COMPONENTS Development)
-    include(UseJava)
 
 #   file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
     add_jar(scapix_jni_jar SOURCES ${java_sources} OUTPUT_NAME scapix_jni)
@@ -77,6 +110,7 @@ if(NOT ANDROID)
 
     get_target_property(scapix_jni_jar_file scapix_jni_jar JAR_FILE)
     target_compile_definitions(scapix_jni PUBLIC SCAPIX_JNI_JAR_FILE="${scapix_jni_jar_file}")
+
 endif()
 
 function(scapix_jni_source_group)
