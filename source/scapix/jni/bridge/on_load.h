@@ -1,7 +1,7 @@
 /*
 	scapix/jni/bridge/on_load.h
 
-	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
+	Copyright (c) 2019-2026 Boris Rasin (boris@scapix.com)
 */
 
 #ifndef SCAPIX_JNI_BRIDGE_ON_LOAD_H

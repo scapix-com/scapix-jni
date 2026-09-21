@@ -1,7 +1,7 @@
 /*
 	scapix/jni/detail/init.h
 
-	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
+	Copyright (c) 2019-2026 Boris Rasin (boris@scapix.com)
 */
 
 #ifndef SCAPIX_JNI_DETAIL_INIT_H
