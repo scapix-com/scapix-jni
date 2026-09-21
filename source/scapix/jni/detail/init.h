@@ -8,9 +8,9 @@
 #define SCAPIX_JNI_DETAIL_INIT_H
 
 #include <scapix/jni/native_method.h>
-#include <scapix/jni/com/scapix/native_exception.h>
-#include <scapix/jni/com/scapix/bridge.h>
-#include <scapix/jni/com/scapix/function.h>
+#include <scapix/jni/bridge/native_exception.h>
+#include <scapix/jni/bridge/bridge.h>
+#include <scapix/jni/bridge/function.h>
 
 #ifdef SCAPIX_JNI_CACHE_CLASS_LOADER
 #include <scapix/jni/class_loader.h>
@@ -24,9 +24,9 @@ inline void init()
 	class_loader::init();
 	#endif
 
-	com::scapix::native_exception::native_methods::register_();
-	com::scapix::bridge_::native_methods::register_();
-	com::scapix::function::native_methods::register_();
+	bridge::native_exception::native_methods::register_();
+	bridge::bridge_::native_methods::register_();
+	bridge::function::native_methods::register_();
 }
 
 } // namespace scapix::jni::detail

@@ -1,11 +1,11 @@
 /*
-	scapix/jni/com/scapix/bridge.h
+	scapix/jni/bridge/bridge.h
 
 	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
 */
 
-#ifndef SCAPIX_JNI_COM_SCAPIX_BRIDGE_H
-#define SCAPIX_JNI_COM_SCAPIX_BRIDGE_H
+#ifndef SCAPIX_JNI_BRIDGE_BRIDGE_H
+#define SCAPIX_JNI_BRIDGE_BRIDGE_H
 
 #include <memory>
 #include <utility>
@@ -15,7 +15,7 @@
 #include <scapix/jni/fwd/native_method.h>
 
 namespace scapix::jni {
-namespace com::scapix {
+namespace bridge {
 
 namespace cpp { class object_base; }
 
@@ -48,6 +48,9 @@ public:
 
 };
 
+template <fixed_string ClassName, typename T, typename ...Args>
+void init(ref<bridge_object<ClassName, T>> thiz, Args... args);
+
 namespace cpp {
 
 class object_base
@@ -63,12 +66,12 @@ protected:
 private:
 
 	template <fixed_string ClassName, typename T, typename ...Args>
-	friend void init(ref<bridge_object<ClassName, T>> thiz, Args... args);
+	friend void jni::bridge::init(ref<bridge_object<ClassName, T>> thiz, Args... args);
 
 	template <typename Jni, typename Cpp>
 	friend struct jni::convert;
 
-	friend class com::scapix::bridge_;
+	friend class jni::bridge::bridge_;
 
 	void attach(ref<bridge> obj, std::shared_ptr<object_base> shared_this)
 	{
@@ -130,17 +133,17 @@ protected:
 
 };
 
+} // namespace cpp
+
 // No 'universal reference' arguments, as types are explicitly specified, not deduced.
 
 template <fixed_string ClassName, typename T, typename ...Args>
 void init(ref<bridge_object<ClassName, T>> thiz, Args... args)
 {
-	std::shared_ptr<object_base> obj = std::make_shared<T>(std::forward<Args>(args)...);
-	object_base* ptr = obj.get();
+	std::shared_ptr<cpp::object_base> obj = std::make_shared<T>(std::forward<Args>(args)...);
+	cpp::object_base* ptr = obj.get();
 	ptr->attach(std::move(thiz), std::move(obj));
 }
-
-} // namespace cpp
 
 class bridge_
 {
@@ -154,18 +157,18 @@ public:
 
 };
 
-} // namespace com::scapix
+} // namespace bridge
 
-template <std::derived_from<com::scapix::cpp::object_base> T, fixed_string ClassName>
+template <std::derived_from<bridge::cpp::object_base> T, fixed_string ClassName>
 T& convert_this(ref<object<ClassName>> x)
 {
-	return *ref<com::scapix::bridge_object<ClassName, T>>(x)->get_ptr();
+	return *ref<bridge::bridge_object<ClassName, T>>(x)->get_ptr();
 }
 
-template <fixed_string ClassName, std::derived_from<com::scapix::cpp::object_base> T>
+template <fixed_string ClassName, std::derived_from<bridge::cpp::object_base> T>
 struct convert<ref<object<ClassName>>, std::shared_ptr<T>>
 {
-	static std::shared_ptr<T> cpp(ref<com::scapix::bridge_object<ClassName, T>> v)
+	static std::shared_ptr<T> cpp(ref<bridge::bridge_object<ClassName, T>> v)
 	{
 		if (!v)
 			return nullptr;
@@ -173,7 +176,7 @@ struct convert<ref<object<ClassName>>, std::shared_ptr<T>>
 		return std::static_pointer_cast<T>(v->get_ptr()->scapix_shared());
 	}
 
-	static ref<com::scapix::bridge_object<ClassName, T>> jni(std::shared_ptr<T> v)
+	static ref<bridge::bridge_object<ClassName, T>> jni(std::shared_ptr<T> v)
 	{
 		if (!v)
 			return nullptr;
@@ -185,4 +188,4 @@ struct convert<ref<object<ClassName>>, std::shared_ptr<T>>
 
 } // namespace scapix::jni
 
-#endif // SCAPIX_JNI_COM_SCAPIX_BRIDGE_H
+#endif // SCAPIX_JNI_BRIDGE_BRIDGE_H

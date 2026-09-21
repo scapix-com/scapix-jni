@@ -7,7 +7,7 @@
 #include <scapix/jni/detail/exception.h>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/throwable.h>
-#include <scapix/jni/com/scapix/native_exception.h>
+#include <scapix/jni/bridge/native_exception.h>
 #include <scapix/jni/vm_exception.h>
 
 namespace scapix::jni::detail {
@@ -39,7 +39,7 @@ which can throw any exception thrown by executed Java code:
 
 	local_ref<throwable> exception(e);
 
-	if (auto native = exception->instance_of<com::scapix::native_exception>())
+	if (auto native = exception->instance_of<bridge::native_exception>())
 		native->rethrow();
 
 	throw vm_exception(std::move(exception));

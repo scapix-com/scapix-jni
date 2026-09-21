@@ -1,11 +1,11 @@
 /*
-	scapix/jni/com/scapix/native_exception.h
+	scapix/jni/bridge/native_exception.h
 
 	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
 */
 
-#ifndef SCAPIX_JNI_COM_SCAPIX_NATIVE_EXCEPTION_H
-#define SCAPIX_JNI_COM_SCAPIX_NATIVE_EXCEPTION_H
+#ifndef SCAPIX_JNI_BRIDGE_NATIVE_EXCEPTION_H
+#define SCAPIX_JNI_BRIDGE_NATIVE_EXCEPTION_H
 
 #include <memory>
 #include <exception>
@@ -19,7 +19,7 @@
 #endif
 
 namespace scapix::jni {
-namespace com::scapix {
+namespace bridge {
 namespace cpp {
 
 class native_exception final
@@ -97,14 +97,14 @@ public:
 
 };
 
-} // namespace com::scapix
+} // namespace bridge
 
-template <std::same_as<com::scapix::cpp::native_exception> T>
-com::scapix::cpp::native_exception& convert_this(ref<com::scapix::native_exception> v)
+template <std::same_as<bridge::cpp::native_exception> T>
+bridge::cpp::native_exception& convert_this(ref<bridge::native_exception> v)
 {
 	return *v->cpp();
 }
 
 } // namespace scapix::jni
 
-#endif // SCAPIX_JNI_COM_SCAPIX_NATIVE_EXCEPTION_H
+#endif // SCAPIX_JNI_BRIDGE_NATIVE_EXCEPTION_H

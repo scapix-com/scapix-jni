@@ -1,11 +1,11 @@
 /*
-	scapix/jni/com/scapix/function.h
+	scapix/jni/bridge/function.h
 
 	Copyright (c) 2019-2024 Boris Rasin (boris@scapix.com)
 */
 
-#ifndef SCAPIX_JNI_COM_SCAPIX_FUNCTION_H
-#define SCAPIX_JNI_COM_SCAPIX_FUNCTION_H
+#ifndef SCAPIX_JNI_BRIDGE_FUNCTION_H
+#define SCAPIX_JNI_BRIDGE_FUNCTION_H
 
 #include <functional>
 #include <utility>
@@ -14,7 +14,7 @@
 #include <scapix/jni/fwd/native_method.h>
 
 namespace scapix::jni {
-namespace com::scapix {
+namespace bridge {
 namespace cpp {
 
 class function
@@ -89,14 +89,40 @@ public:
 
 };
 
-} // namespace com::scapix
+} // namespace bridge
 
-template <std::derived_from<com::scapix::cpp::function> T, typename J>
+template <std::derived_from<bridge::cpp::function> T, typename J>
 T& convert_this(ref<J> x)
 {
-	return *static_cast<T*>(static_pointer_cast<com::scapix::function>(x)->get_ptr());
+	return *static_cast<T*>(static_pointer_cast<bridge::function>(x)->get_ptr());
 }
+
+template <fixed_string ClassName, typename JniR, typename ...JniArgs, fixed_string Name, typename R, typename ...Args>
+struct convert<ref<function<ClassName, JniR(JniArgs...), Name>>, std::function<R(Args...)>>
+{
+	static std::function<R(Args...)> cpp(ref<function<ClassName, JniR(JniArgs...), Name>> i)
+	{
+		if (!i)
+			return nullptr;
+
+		return std::function<R(Args...)>([i = global_ref<function<ClassName, JniR(JniArgs...), Name>>(i)](Args&&... args)
+		{
+			if constexpr (std::is_void_v<R>)
+				return i->call(convert_jni<JniArgs>(std::forward<Args>(args))...);
+			else
+				return convert_cpp<R>(i->call(convert_jni<JniArgs>(std::forward<Args>(args))...));
+		});
+	}
+
+	static ref<function<ClassName, JniR(JniArgs...), Name>> jni(std::function<R(Args...)> f)
+	{
+		if (!f)
+			return nullptr;
+
+		return new_object<bridge::function_impl<ClassName, JniR(JniArgs...), Name>>(std::move(f));
+	}
+};
 
 } // namespace scapix::jni
 
-#endif // SCAPIX_JNI_COM_SCAPIX_FUNCTION_H
+#endif // SCAPIX_JNI_BRIDGE_FUNCTION_H

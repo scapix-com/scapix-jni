@@ -23,7 +23,7 @@
 #include <scapix/jni/function.h>
 #include <scapix/jni/struct.h>
 #include <scapix/jni/cast.h>
-#include <scapix/jni/com/scapix/function.h>
+#include <scapix/jni/bridge/function.h>
 
 namespace scapix::jni {
 
@@ -434,32 +434,6 @@ struct convert<ref<generic_type<java_util_hashset, JE>>, std::unordered_set<K, H
 			set->call_method<"add", jboolean(ref<generic<JE>>)>(convert_jni<ref<JE>>(i));
 
 		return set;
-	}
-};
-
-template <fixed_string ClassName, typename JniR, typename ...JniArgs, fixed_string Name, typename R, typename ...Args>
-struct convert<ref<function<ClassName, JniR(JniArgs...), Name>>, std::function<R(Args...)>>
-{
-	static std::function<R(Args...)> cpp(ref<function<ClassName, JniR(JniArgs...), Name>> i)
-	{
-		if (!i)
-			return nullptr;
-
-		return std::function<R(Args...)>([i = global_ref<function<ClassName, JniR(JniArgs...), Name>>(i)](Args&&... args)
-		{
-			if constexpr (std::is_void_v<R>)
-				return i->call(convert_jni<JniArgs>(std::forward<Args>(args))...);
-			else
-				return convert_cpp<R>(i->call(convert_jni<JniArgs>(std::forward<Args>(args))...));
-		});
-	}
-
-	static ref<function<ClassName, JniR(JniArgs...), Name>> jni(std::function<R(Args...)> f)
-	{
-		if (!f)
-			return nullptr;
-
-		return new_object<com::scapix::function_impl<ClassName, JniR(JniArgs...), Name>>(std::move(f));
 	}
 };
 

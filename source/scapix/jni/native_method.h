@@ -14,7 +14,7 @@
 #include <scapix/jni/convert.h>
 #include <scapix/jni/signature.h>
 #include <scapix/jni/vm_exception.h>
-#include <scapix/jni/com/scapix/native_exception.h>
+#include <scapix/jni/bridge/native_exception.h>
 #include <scapix/jni/class.h>
 
 namespace scapix::jni {
@@ -114,7 +114,7 @@ param_type<JniR> invoke(JNIEnv* env, F&& f)
 	}
 	catch (...)
 	{
-		new_object<com::scapix::native_exception>()->throw_();
+		new_object<bridge::native_exception>()->throw_();
 	}
 
 	if constexpr (!std::is_void_v<R>)
