@@ -8,10 +8,11 @@
 #define SCAPIX_JNI_BYTE_BUFFER_H
 
 #include <scapix/jni/object.h>
+#include <scapix/jni/buffer.h>
 
 namespace scapix::jni {
 
-class byte_buffer : public object<"java/nio/ByteBuffer">
+class byte_buffer : public object<"java/nio/ByteBuffer", buffer>
 {
 public:
 
@@ -20,16 +21,6 @@ public:
 		jobject buf = detail::env()->NewDirectByteBuffer(address, capacity);
 		detail::check_exception();
 		return local_ref<byte_buffer>(buf);
-	}
-
-	void* direct_address() const
-	{
-		return detail::env()->GetDirectBufferAddress(handle());
-	}
-
-	jlong direct_capacity() const
-	{
-		return detail::env()->GetDirectBufferCapacity(handle());
 	}
 
 };

@@ -10,7 +10,7 @@
 #include <tuple>
 #include <scapix/core/fixed_string.h>
 #include <scapix/jni/object_traits.h>
-#include <scapix/jni/fwd/object.h>
+#include <scapix/jni/fwd/buffer.h>
 
 namespace scapix::jni {
 
@@ -20,7 +20,7 @@ template<>
 struct object_traits<byte_buffer>
 {
 	static constexpr auto class_name = "java/nio/ByteBuffer";
-	using base_classes = std::tuple<object<>>;
+	using base_classes = std::tuple<buffer>;
 };
 
 } // namespace scapix::jni
