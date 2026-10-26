@@ -46,9 +46,6 @@ protected:
 
 private:
 
-	template <typename T>
-	friend struct object_traits;
-
 	template <typename T, scope Scope>
 	friend class ref;
 
