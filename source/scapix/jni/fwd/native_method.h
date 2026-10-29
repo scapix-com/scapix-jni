@@ -97,38 +97,38 @@ struct native_method_helper<R(Args...) noexcept>
 
 // Both types specified - use CppType to select overload.
 
-template <method JniType, function_type CppType, reference T, std::size_t N>
-constexpr auto native_method(const char(&name)[N], typename native_method_helper<CppType>::template ptr<T> ptr)
+template <method JniType, function_type CppType, reference T>
+constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<CppType>::template ptr<T> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
-template <method JniType, function_type CppType, class_type Class, std::size_t N>
-constexpr auto native_method(const char(&name)[N], typename native_method_helper<CppType>::template member_ptr<Class> ptr)
+template <method JniType, function_type CppType, class_type Class>
+constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<CppType>::template member_ptr<Class> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
 // static without ref<class_> parameter
 
-template <method JniType, function_type CppType, std::size_t N>
-constexpr auto native_method(const char(&name)[N], std::add_pointer_t<CppType> ptr)
+template <method JniType, function_type CppType>
+constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<CppType> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
 // Only JniType specified - use JniType to select overload.
 
-template <method JniType, reference T, std::size_t N>
-constexpr auto native_method(const char(&name)[N], typename native_method_helper<JniType>::template ptr<T> ptr)
+template <method JniType, reference T>
+constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<JniType>::template ptr<T> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
-template <method JniType, class_type Class, std::size_t N>
-constexpr auto native_method(const char(&name)[N], typename native_method_helper<JniType>::template member_ptr<Class> ptr)
+template <method JniType, class_type Class>
+constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<JniType>::template member_ptr<Class> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
 // static without ref<class_> parameter
@@ -136,35 +136,34 @@ constexpr auto native_method(const char(&name)[N], typename native_method_helper
 // workaround for msvc 19.51 bug
 // https://developercommunity.microsoft.com/t/MSVC-C-overload-resolution-reports-C26/11143435
 
-//template <method JniType, std::size_t N>
-template <typename JniType, std::size_t N>
+//template <method JniType>
+template <typename JniType>
 	requires method<JniType>
-constexpr auto native_method(const char(&name)[N], std::add_pointer_t<JniType> ptr)
+constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<JniType> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
-template <method JniType, std::size_t N>
-constexpr auto native_method(const char(&name)[N], auto ptr)
+template <method JniType>
+constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
-	return native_method_info<JniType, decltype(ptr), N>(name, ptr);
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
 // No types specified - only works if signature can be deduced and only for single overload.
 
-template <std::size_t N>
-constexpr auto native_method(const char(&name)[N], auto ptr)
+constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
-	return native_method_info<deduce_signature<decltype(ptr)>, decltype(ptr), N>(name, ptr);
+	return native_method_info<deduce_signature<decltype(ptr)>, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
 }
 
 // Android method marked @CriticalNative
 // https://developer.android.com/reference/dalvik/annotation/optimization/CriticalNative
 
-template <android_critical_native_type Type, std::size_t N>
-constexpr auto android_critical_native(const char(&name)[N], Type* ptr)
+template <android_critical_native_type Type>
+constexpr auto android_critical_native(compile_time_string auto&& name, Type* ptr)
 {
-	return native_method_info<Type, decltype(ptr), N, true>(name, ptr);
+	return native_method_info<Type, decltype(ptr), string_size<decltype(name)>(), true>(name, ptr);
 }
 
 } // namespace scapix::jni

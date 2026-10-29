@@ -244,7 +244,7 @@ inline ref<class_> object_impl<ClassName>::class_object()
 {
 
 #ifdef SCAPIX_JNI_CACHE_CLASS_LOADER
-	static const immortal<global_ref<class_>> cls(class_loader::find_class(ClassName.replace('/', '.')));
+	static const immortal<global_ref<class_>> cls(class_loader::find_class(ClassName.replaced('/', '.')));
 #else
 	static const immortal<global_ref<class_>> cls(class_::find_class(ClassName));
 #endif
