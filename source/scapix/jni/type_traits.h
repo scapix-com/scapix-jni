@@ -53,6 +53,19 @@ concept primitive = numeric<T> || std::same_as<T, jboolean>;
 template <typename T>
 concept primitive_or_void = primitive<T> || std::same_as<T, void>;
 
+// java_integral_type
+
+template <std::size_t Size>
+struct java_integral_type_impl;
+
+template <> struct java_integral_type_impl<1> { using type = jbyte; };
+template <> struct java_integral_type_impl<2> { using type = jshort; };
+template <> struct java_integral_type_impl<4> { using type = jint; };
+template <> struct java_integral_type_impl<8> { using type = jlong; };
+
+template <std::integral T>
+using java_integral_type = typename java_integral_type_impl<sizeof(T)>::type;
+
 // array_element
 
 template <typename T>
