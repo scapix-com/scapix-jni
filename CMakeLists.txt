@@ -83,7 +83,7 @@ if(SCAPIX_JNI_STANDARD_UTF8)
 endif()
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS source/*)
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${sources})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 target_sources(scapix_jni PRIVATE ${sources})
 
 file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS source/*.java)
