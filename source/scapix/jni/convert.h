@@ -27,17 +27,23 @@
 
 namespace scapix::jni {
 
-template <typename Jni, typename T>
-struct convert<Jni, std::shared_ptr<T>>
+template <typename J, typename T>
+struct convert<ref<J>, std::shared_ptr<T>>
 {
-	static std::shared_ptr<T> cpp(Jni value)
+	static std::shared_ptr<T> cpp(ref<J> value)
 	{
+		if (!value)
+			return nullptr;
+
 		return std::make_shared<T>(convert_cpp<T>(value));
 	}
 
-	static Jni jni(std::shared_ptr<T> value)
+	static ref<J> jni(std::shared_ptr<T> value)
 	{
-		return convert_jni<Jni>(*value);
+		if (!value)
+			return nullptr;
+
+		return convert_jni<ref<J>>(*value);
 	}
 };
 
