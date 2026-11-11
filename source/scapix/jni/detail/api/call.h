@@ -10,6 +10,7 @@
 #include <scapix/jni/detail/api/type.h>
 #include <scapix/jni/detail/exception.h>
 #include <scapix/jni/ref.h>
+#include <scapix/jni/type_traits.h>
 
 namespace scapix::jni::detail::api {
 
@@ -46,16 +47,16 @@ struct call<R(Args...)>
 private:
 
 	template <typename T, scope Scope>
-	static jobject  arg(const jni::ref<T, Scope>& v) { return v.handle(); }
+	static jobject arg(const jni::ref<T, Scope>& v)
+	{
+		return v.handle();
+	}
 
-	static jboolean arg(jboolean v) { return v; }
-	static jbyte    arg(jbyte v)    { return v; }
-	static jchar    arg(jchar v)    { return v; }
-	static jshort   arg(jshort v)   { return v; }
-	static jint     arg(jint v)     { return v; }
-	static jlong    arg(jlong v)    { return v; }
-	static jfloat   arg(jfloat v)   { return v; }
-	static jdouble  arg(jdouble v)  { return v; }
+	template <primitive T>
+	static T arg(T v)
+	{
+		return v;
+	}
 };
 
 } // namespace scapix::jni::detail::api
