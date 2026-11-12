@@ -203,7 +203,7 @@ public:
 
 	static void register_()
 	{
-		object_impl<ClassName>::class_object()->register_natives(reinterpret_cast<const JNINativeMethod*>(&methods), sizeof...(Methods));
+		object<ClassName>::class_object()->register_natives(reinterpret_cast<const JNINativeMethod*>(&methods), sizeof...(Methods));
 	}
 
 private:

@@ -5,19 +5,21 @@
 */
 
 // outside of include guard
-#include <scapix/jni/object_impl.h>
+#include <scapix/jni/detail/object_impl.h>
 
 #ifndef SCAPIX_JNI_OBJECT_BASE_H
 #define SCAPIX_JNI_OBJECT_BASE_H
+
+#include <scapix/jni/object.h>
 
 namespace scapix::jni {
 
 #include <scapix/core/warning/inaccessible_base.h>
 
 template <fixed_string ClassName, typename ...Bases>
-class object_base : private object_impl<ClassName>, public Bases...
+class object_base : private detail::object_impl<ClassName>, public Bases...
 {
-	using impl = object_impl<ClassName>;
+	using impl = detail::object_impl<ClassName>;
 
 protected:
 

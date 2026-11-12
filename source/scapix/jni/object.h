@@ -5,24 +5,47 @@
 */
 
 // outside of include guard
-#include <scapix/jni/object_impl.h>
+#include <scapix/jni/detail/object_impl.h>
 
 #ifndef SCAPIX_JNI_OBJECT_H
 #define SCAPIX_JNI_OBJECT_H
 
 #include <tuple>
+#include <utility>
 #include <scapix/jni/fwd/object.h>
 
 namespace scapix::jni {
 
+// class_object
+
+template <reference T>
+ref<class_> class_object()
+{
+	return detail::object_impl<class_name_v<T>>::class_object();
+}
+
+// new_object
+
+template <reference T, init_method Type, typename ...Args>
+ref<T> new_object(Args&&... args)
+{
+	return detail::object_impl<class_name_v<T>>::template new_object<Type>(std::forward<Args>(args)...);
+}
+
+template <reference T, typename ...Args>
+ref<T> new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
+{
+	return element_type_t<T>::new_object(std::forward<Args>(args)...);
+}
+
 #include <scapix/core/warning/inaccessible_base.h>
 
 template <fixed_string ClassName, typename ...Bases>
-class object : private object_impl<ClassName>, public Bases...
+class object : private detail::object_impl<ClassName>, public Bases...
 {
 	static_assert(ClassName != "java/lang/Object" || sizeof...(Bases) == 0, "java/lang/Object should not specify base classes");
 
-	using impl = object_impl<ClassName>;
+	using impl = detail::object_impl<ClassName>;
 
 public:
 
@@ -69,7 +92,7 @@ class object<ClassName> : public object<ClassName, object<>>
 };
 
 template <>
-class object<"java/lang/Object"> : private object_impl<"java/lang/Object">
+class object<"java/lang/Object"> : private detail::object_impl<"java/lang/Object">
 {
 public:
 
@@ -94,7 +117,7 @@ public:
 	template <reference T>
 	[[nodiscard]] bool is_instance_of() const
 	{
-		return is_instance_of(object_impl_t<T>::class_object());
+		return is_instance_of(jni::class_object<T>());
 	}
 
 	[[nodiscard]] bool is_instance_of(ref<class_> cls) const noexcept

@@ -1,11 +1,11 @@
 /*
-	scapix/jni/object_impl.h
+	scapix/jni/detail/object_impl.h
 
 	Copyright (c) 2019-2026 Boris Rasin (boris@scapix.com)
 */
 
-#ifndef SCAPIX_JNI_OBJECT_IMPL_H
-#define SCAPIX_JNI_OBJECT_IMPL_H
+#ifndef SCAPIX_JNI_DETAIL_OBJECT_IMPL_H
+#define SCAPIX_JNI_DETAIL_OBJECT_IMPL_H
 
 #include <utility>
 #include <scapix/core/immortal.h>
@@ -18,7 +18,7 @@
 #include <scapix/jni/fwd/class.h>
 #include <scapix/jni/element.h>
 
-namespace scapix::jni {
+namespace scapix::jni::detail {
 
 template <fixed_string ClassName>
 class object_impl
@@ -186,22 +186,7 @@ private:
 
 };
 
-template <reference T>
-using object_impl_t = object_impl<class_name_v<T>>;
-
-template <reference Object, init_method Type, typename ...Args>
-ref<Object> new_object(Args&&... args)
-{
-	return object_impl_t<Object>::template new_object<Type>(std::forward<Args>(args)...);
-}
-
-template <reference Object, typename ...Args>
-ref<Object> new_object(Args&&... args) requires requires { element_type_t<Object>::new_object(std::forward<Args>(args)...); }
-{
-	return element_type_t<Object>::new_object(std::forward<Args>(args)...);
-}
-
-} // namespace scapix::jni
+} // namespace scapix::jni::detail
 
 #ifdef SCAPIX_JNI_CACHE_CLASS_LOADER
 #include <scapix/jni/class_loader.h>
@@ -209,7 +194,7 @@ ref<Object> new_object(Args&&... args) requires requires { element_type_t<Object
 #include <scapix/jni/class.h>
 #endif
 
-namespace scapix::jni {
+namespace scapix::jni::detail {
 
 template <fixed_string ClassName>
 template <fixed_string Name, method Type>
@@ -284,6 +269,6 @@ inline jfieldID object_impl<ClassName>::static_field_id()
 	return id;
 }
 
-} // namespace scapix::jni
+} // namespace scapix::jni::detail
 
-#endif // SCAPIX_JNI_OBJECT_IMPL_H
+#endif // SCAPIX_JNI_DETAIL_OBJECT_IMPL_H

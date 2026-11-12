@@ -168,7 +168,7 @@ public:
 
 	static ref<array> new_object(jsize len, ref<T> init = {})
 	{
-		return detail::check_result<array>(detail::env()->NewObjectArray(len, object_impl_t<T>::class_object().handle(), init.handle()));
+		return detail::check_result<array>(detail::env()->NewObjectArray(len, jni::class_object<T>().handle(), init.handle()));
 	}
 
 	// for consistency with primitive array
