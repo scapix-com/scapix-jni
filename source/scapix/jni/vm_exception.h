@@ -38,7 +38,7 @@ public:
 	}
 
 	template <object_convertible_to<throwable> T>
-	ref<T> instance_of() const noexcept
+	ref<T> instance_of() const
 	{
 		return exception->instance_of<T>();
 	}
