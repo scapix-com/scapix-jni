@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_DETAIL_EXCEPTION_H
 #define SCAPIX_JNI_DETAIL_EXCEPTION_H
 
+#include <type_traits>
 #include <scapix/jni/type_traits.h>
 #include <scapix/jni/ref.h>
 
@@ -58,8 +59,10 @@ inline jint check_result(jint i)
 }
 
 // Get<PrimitiveType>ArrayElements(), GetPrimitiveArrayCritical()
+// GetStringChars(), GetStringUTFChars(), GetStringCritical()
 
-template <primitive T>
+template <typename T>
+	requires std::is_arithmetic_v<T>
 inline T* check_result(T* p)
 {
 	if (!p) [[unlikely]]

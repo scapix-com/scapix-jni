@@ -11,9 +11,10 @@
 #define SCAPIX_JNI_STRING_H
 
 #include <cassert>
+#include <concepts>
+#include <cstddef>
+#include <span>
 #include <stdexcept>
-#include <type_traits>
-#include <iterator>
 #include <string_view>
 #include <scapix/jni/object.h>
 #include <scapix/jni/lock.h>
@@ -21,90 +22,48 @@
 
 namespace scapix::jni {
 
-template <typename Char, lock Lock>
-class string_chars
-{
-public:
+// View of string characters: std::span, which releases the characters on destruction.
+// Char is jchar (UTF-16) or char (JNI modified UTF-8).
 
-	typedef Char value_type;
-	typedef std::make_unsigned<jsize>::type size_type;
-	typedef jsize difference_type;
-//	typedef value_type* pointer;
-	typedef const value_type* pointer;
-	typedef const value_type* const_pointer;
-	typedef value_type& reference;
-	typedef const value_type& const_reference;
-	typedef value_type* iterator;
-	typedef const value_type* const_iterator;
-	typedef std::reverse_iterator<iterator> reverse_iterator;
-	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+template <typename Char, lock Lock>
+class string_chars : public std::span<const Char>
+{
+	static_assert(!std::same_as<Char, char> || Lock != lock::critical, "Unsupported parameter combination: <char, critical>");
+
+	using span = std::span<const Char>;
+	using api = detail::api::string<Char, Lock>;
+
+public:
 
 	string_chars(const string_chars&) = delete;
 	string_chars& operator=(const string_chars&) = delete;
 
-	string_chars(string_chars&& c) : string_(c.string_), is_copy_(c.is_copy_), data_(c.data_), size_(c.size_) { c.data_ = nullptr; }
-	string_chars& operator=(string_chars&& c) = delete; // { c.swap(*this); return *this; }
-
 	~string_chars() { release(); }
 
-	pointer data() { return data_; }
-	const_pointer data() const { return data_; }
-
-	size_type size() const { return size_; }
-	bool empty() const { return size() == 0; }
-
-	iterator begin() { return data(); }
-	const_iterator begin() const { return data(); }
-	const_iterator cbegin() const { return data(); }
-
-	iterator end() { return data() + size(); }
-	const_iterator end() const { return data() + size(); }
-	const_iterator cend() const { return data() + size(); }
-
-	reverse_iterator rbegin() { return data() + size();	}
-	const_reverse_iterator rbegin() const { return data() + size();	}
-	const_reverse_iterator crbegin() const { return data() + size(); }
-
-	reverse_iterator rend() { return data(); }
-	const_reverse_iterator rend() const { return data(); }
-	const_reverse_iterator crend() const { return data(); }
-
-	reference operator[](size_type pos) { return data()[pos]; }
-	const_reference operator[](size_type pos) const { return data()[pos]; }
-
-	reference at(size_type pos)
+	const Char& at(std::size_t pos) const
 	{
-		if (pos >= size())
-			throw std::out_of_range("string_chars");
+		if (pos >= this->size())
+			throw std::out_of_range("scapix::jni::string_chars::at");
 
 		return (*this)[pos];
 	}
 
-	const_reference at(size_type pos) const
-	{
-		if (pos >= size())
-			throw std::out_of_range("string_chars");
-
-		return (*this)[pos];
-	}
-
-	jboolean is_copy() const
-	{
-		return is_copy_;
-	}
-
-	void release()
-	{
-		if (data_)
-		{
-			detail::api::string<Char, Lock>::release_chars(string_, data_);
-			data_ = nullptr;
-		}
-	}
+	jboolean is_copy() const { return is_copy_; }
 
 	std::basic_string_view<Char> view() const
 	{
-		return std::basic_string_view<Char>(data(), size());
+		return std::basic_string_view<Char>(this->data(), this->size());
+	}
+
+	// After a call to release() this is an empty span.
+
+	void release()
+	{
+		if (this->data())
+		{
+			api::release_chars(string_, this->data());
+			span::operator=(span());
+		}
 	}
 
 private:
@@ -112,18 +71,13 @@ private:
 	friend class string;
 
 	string_chars(jstring string, jsize size) :
-		string_(string),
-		data_(detail::api::string<Char, Lock>::get_chars(string_, &is_copy_)),
-		size_(size)
+		span(detail::check_result(api::get_chars(string, &is_copy_)), static_cast<std::size_t>(size)),
+		string_(string)
 	{
 	}
 
-private:
-
 	jstring string_;
-	jboolean is_copy_;
-	pointer data_;
-	size_type size_;
+	jboolean is_copy_; // written during base class initialization: must not have an initializer
 
 };
 
@@ -133,16 +87,12 @@ public:
 
 	static local_ref<string> new_object(const jchar* buf, jsize len)
 	{
-		jstring str = detail::env()->NewString(buf, len);
-		detail::check_exception();
-		return local_ref<string>(str);
+		return detail::check_result<string>(detail::env()->NewString(buf, len));
 	}
 
 	static local_ref<string> new_object(const char* buf)
 	{
-		jstring str = detail::env()->NewStringUTF(buf);
-		detail::check_exception();
-		return local_ref<string>(str);
+		return detail::check_result<string>(detail::env()->NewStringUTF(buf));
 	}
 
 	template <typename Char = jchar>
@@ -154,15 +104,13 @@ public:
 	template <typename Char = jchar, lock Lock = lock::noncritical>
 	string_chars<Char, Lock> chars() const
 	{
-		static_assert(!std::is_same_v<Char, char> || Lock != lock::critical, "Unsupported parameter combination: <char, critical>");
-		return string_chars<Char, Lock>(handle(), length());
+		return string_chars<Char, Lock>(handle(), length<Char>());
 	}
 
 	template <typename Char = jchar, lock Lock = lock::noncritical>
 	string_chars<Char, Lock> chars(jsize size) const
 	{
-		static_assert(!std::is_same_v<Char, char> || Lock != lock::critical, "Unsupported parameter combination: <char, critical>");
-		assert(size <= length());
+		assert(size >= 0 && size <= length<Char>());
 		return string_chars<Char, Lock>(handle(), size);
 	}
 
