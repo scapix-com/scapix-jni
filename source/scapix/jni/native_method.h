@@ -46,7 +46,7 @@ struct param<ref<T>, Cpp>
 		return res.release();
 	}
 
-	static decltype(auto) cpp(jobject v)
+	static ref<T> cpp(jobject v)
 	{
 		return ref<T>(v);
 	}
