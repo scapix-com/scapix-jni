@@ -68,7 +68,7 @@ public:
 		detail::check_result(detail::env()->RegisterNatives(handle(), methods, count));
 	}
 
-	template <int N>
+	template <std::size_t N>
 	void register_natives(const JNINativeMethod(&methods)[N]) const
 	{
 		register_natives(methods, N);
