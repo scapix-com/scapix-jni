@@ -93,7 +93,7 @@ struct ref_less
 	template <object_convertible_to<T> Y1, scope S1, object_convertible_to<T> Y2, scope S2>
 	bool operator()(const ref<Y1, S1>& r1, const ref<Y2, S2>& r2) const
 	{
-		// null ref is less then any non-null ref.
+		// null ref is less than non-null ref.
 
 		if (!r2)
 			return false;
