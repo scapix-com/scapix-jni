@@ -93,7 +93,7 @@ public:
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
 
-	constexpr scope get_scope() noexcept { return Scope; }
+	constexpr scope get_scope() const noexcept { return Scope; }
 
 	ref(std::nullptr_t = nullptr) noexcept : object(nullptr) {}
 	explicit ref(jobject h) noexcept : object(h) {}
@@ -207,7 +207,7 @@ public:
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
 
-	scope get_scope() noexcept { return scp; }
+	scope get_scope() const noexcept { return scp; }
 
 	ref(std::nullptr_t = nullptr) noexcept : object(nullptr), scp(scope::generic) {}
 
@@ -370,12 +370,6 @@ template <typename T1, scope S1, typename T2, scope S2>
 inline bool operator == (const ref<T1, S1>& a, const ref<T2, S2>& b)
 {
 	return detail::env()->IsSameObject(a.handle(), b.handle());
-}
-
-template <typename T1, scope S1, typename T2, scope S2>
-inline bool operator != (const ref<T1, S1>& a, const ref<T2, S2>& b)
-{
-	return !(a == b);
 }
 
 } // namespace scapix::jni
