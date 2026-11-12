@@ -13,23 +13,26 @@
 
 namespace scapix::jni::detail {
 
-[[noreturn]] void throw_exception(jthrowable e = env()->ExceptionOccurred());
-[[noreturn]] void throw_exception_nested(jthrowable e = env()->ExceptionOccurred());
+// Throw pending Java exception (e must not be null).
+
+[[noreturn]] void throw_vm_exception(jthrowable e);
+[[noreturn]] void throw_vm_exception_nested(jthrowable e);
+
+// JNI function reported an error: throw pending Java exception, if any, otherwise jni::error.
+
+[[noreturn]] void throw_exception();
+[[noreturn]] void throw_exception_nested();
 
 inline void check_exception()
 {
-	jthrowable e = env()->ExceptionOccurred();
-
-	if (e != 0) [[unlikely]]
-		throw_exception(e);
+	if (jthrowable e = env()->ExceptionOccurred()) [[unlikely]]
+		throw_vm_exception(e);
 }
 
 inline void check_exception_nested()
 {
-	jthrowable e = env()->ExceptionOccurred();
-
-	if (e != 0) [[unlikely]]
-		throw_exception_nested(e);
+	if (jthrowable e = env()->ExceptionOccurred()) [[unlikely]]
+		throw_vm_exception_nested(e);
 }
 
 inline jfieldID check_result(jfieldID id)

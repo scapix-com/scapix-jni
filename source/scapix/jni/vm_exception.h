@@ -50,8 +50,8 @@ public:
 
 private:
 
-	friend void detail::throw_exception(jthrowable e);
-	friend void detail::throw_exception_nested(jthrowable e);
+	friend void detail::throw_vm_exception(jthrowable e);
+	friend void detail::throw_vm_exception_nested(jthrowable e);
 
 	explicit vm_exception(local_ref<throwable>&& e) : exception(std::move(e)) {}
 

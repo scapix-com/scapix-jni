@@ -13,18 +13,8 @@
 
 namespace scapix::jni::detail {
 
-// JNI functions may report an error without throwing a Java exception.
-
-[[noreturn]] static void throw_error()
+[[noreturn]] void throw_vm_exception(jthrowable e)
 {
-	throw error("jni::error: JNI function failed");
-}
-
-[[noreturn]] void throw_exception(jthrowable e)
-{
-	if (!e)
-		throw_error();
-
 //	env()->ExceptionDescribe();
 	env()->ExceptionClear();
 	throw vm_exception(local_ref<throwable>(e));
@@ -43,11 +33,8 @@ which can throw any exception thrown by executed Java code:
 
 */
 
-[[noreturn]] void throw_exception_nested(jthrowable e)
+[[noreturn]] void throw_vm_exception_nested(jthrowable e)
 {
-	if (!e)
-		throw_error();
-
 //	env()->ExceptionDescribe();
 	env()->ExceptionClear();
 
@@ -57,6 +44,20 @@ which can throw any exception thrown by executed Java code:
 		native->rethrow();
 
 	throw vm_exception(std::move(exception));
+}
+
+// JNI functions may report an error without throwing a Java exception.
+
+[[noreturn]] void throw_exception()
+{
+	check_exception();
+	throw error("jni::error: JNI function failed");
+}
+
+[[noreturn]] void throw_exception_nested()
+{
+	check_exception_nested();
+	throw error("jni::error: JNI function failed");
 }
 
 } // namespace scapix::jni::detail
