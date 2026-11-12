@@ -33,7 +33,7 @@ public:
 		return detail::check_result<class_>(detail::env()->FindClass(name));
 	}
 
-	local_ref<class_> get_super_class() const
+	local_ref<class_> get_superclass() const
 	{
 		return detail::check_result<class_>(detail::env()->GetSuperclass(handle()));
 	}
