@@ -8,7 +8,6 @@
 #define SCAPIX_JNI_ENV_H
 
 #include <jni.h>
-#include <scapix/core/function_traits.h>
 
 namespace scapix::jni {
 namespace detail {
@@ -29,7 +28,13 @@ jni.h (Android NDK) uses JNIEnv** type:
 
 */
 
-using jnienv_type = function_traits<std::remove_pointer_t<decltype(&JNI_CreateJavaVM)>>::argument_type<1>;
+struct env_addr
+{
+	operator JNIEnv**() const noexcept { return ptr; }
+	operator void**() const noexcept { return reinterpret_cast<void**>(ptr); }
+
+	JNIEnv** ptr;
+};
 
 inline JavaVM* jvm_ptr;
 
@@ -46,8 +51,7 @@ struct thread_env
 			jvm()->DetachCurrentThread();
 	}
 
-	jnienv_type addr() { return reinterpret_cast<jnienv_type>(&ptr); }
-	void** addr_void() { return reinterpret_cast<void**>(&ptr); }
+	env_addr addr() noexcept { return { &ptr }; }
 
 	JNIEnv* ptr = nullptr;
 };
@@ -58,7 +62,7 @@ inline thread_local thread_env env_;
 
 inline jint get_env(jint version = JNI_VERSION_1_6) noexcept
 {
-	return detail::jvm()->GetEnv(detail::env_.addr_void(), version);
+	return detail::jvm()->GetEnv(detail::env_.addr(), version);
 }
 
 inline jint attach_current_thread(JavaVMAttachArgs* args = nullptr) noexcept
