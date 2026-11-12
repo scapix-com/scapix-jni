@@ -78,7 +78,7 @@ struct ref_value_hash
 		if (!r)
 			return 0;
 
-		return ref<>(r)->template call_method<"hashCode", jint()>();
+		return ref<>(r)->call_method<"hashCode", jint()>();
 	}
 };
 
@@ -101,7 +101,7 @@ struct ref_less
 		if (!r1)
 			return true;
 
-		return ref<object<"java/lang/Comparable">>(r1)->template call_method<"compareTo", jint(ref<>)>(r2) < 0;
+		return ref<object<"java/lang/Comparable">>(r1)->call_method<"compareTo", jint(ref<>)>(r2) < 0;
 	}
 };
 
