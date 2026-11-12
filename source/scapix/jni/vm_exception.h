@@ -57,7 +57,7 @@ private:
 
 private:
 
-	inline constexpr static char prefix[] = "jni::vm_exception: ";
+	constexpr static char prefix[] = "jni::vm_exception: ";
 
 	std::string class_name() const
 	{
