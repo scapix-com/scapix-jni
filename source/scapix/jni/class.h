@@ -38,7 +38,7 @@ public:
 		return detail::check_result<class_>(detail::env()->GetSuperclass(handle()));
 	}
 
-	jboolean is_assignable_from(ref<class_> source) const noexcept
+	bool is_assignable_from(ref<class_> source) const noexcept
 	{
 		return detail::env()->IsAssignableFrom(source.handle(), handle());
 	}
