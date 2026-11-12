@@ -96,16 +96,12 @@ public:
 
 	ref<object<"java/lang/reflect/Executable">> to_reflected_method(jmethodID id, bool is_static)
 	{
-		jobject method = detail::env()->ToReflectedMethod(handle(), id, is_static);
-		detail::check_exception();
-		return local_ref<object<"java/lang/reflect/Executable">>(method);
+		return detail::check_result<object<"java/lang/reflect/Executable">>(detail::env()->ToReflectedMethod(handle(), id, is_static));
 	}
 
 	ref<object<"java/lang/reflect/Field">> to_reflected_field(jfieldID id, bool is_static)
 	{
-		jobject field = detail::env()->ToReflectedField(handle(), id, is_static);
-		detail::check_exception();
-		return local_ref<object<"java/lang/reflect/Field">>(field);
+		return detail::check_result<object<"java/lang/reflect/Field">>(detail::env()->ToReflectedField(handle(), id, is_static));
 	}
 
 };
