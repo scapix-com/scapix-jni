@@ -5,6 +5,7 @@
 */
 
 #include <scapix/jni/detail/exception.h>
+#include <scapix/jni/error.h>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/throwable.h>
 #include <scapix/jni/bridge/native_exception.h>
@@ -12,8 +13,18 @@
 
 namespace scapix::jni::detail {
 
+// JNI functions may report an error without throwing a Java exception.
+
+[[noreturn]] static void throw_error()
+{
+	throw error("jni::error: JNI function failed");
+}
+
 [[noreturn]] void throw_exception(jthrowable e)
 {
+	if (!e)
+		throw_error();
+
 //	env()->ExceptionDescribe();
 	env()->ExceptionClear();
 	throw vm_exception(local_ref<throwable>(e));
@@ -34,6 +45,9 @@ which can throw any exception thrown by executed Java code:
 
 [[noreturn]] void throw_exception_nested(jthrowable e)
 {
+	if (!e)
+		throw_error();
+
 //	env()->ExceptionDescribe();
 	env()->ExceptionClear();
 
