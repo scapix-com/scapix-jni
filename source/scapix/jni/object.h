@@ -16,12 +16,22 @@
 
 namespace scapix::jni {
 
-// class_object
+// raw_object
+// Same Java class as T, with low level interface of object<>.
 
 template <reference T>
-ref<class_> class_object()
+using raw_object = object<class_name_v<T>>;
+
+template <reference T, scope Scope>
+ref<raw_object<T>> raw(const ref<T, Scope>& r)
 {
-	return detail::object_impl<class_name_v<T>>::class_object();
+	return r;
+}
+
+template <reference T, scope Scope>
+ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
+{
+	return std::move(r);
 }
 
 // new_object
@@ -29,7 +39,7 @@ ref<class_> class_object()
 template <reference T, init_method Type, typename ...Args>
 ref<T> new_object(Args&&... args)
 {
-	return detail::object_impl<class_name_v<T>>::template new_object<Type>(std::forward<Args>(args)...);
+	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);
 }
 
 template <reference T, typename ...Args>
@@ -117,7 +127,7 @@ public:
 	template <reference T>
 	[[nodiscard]] bool is_instance_of() const
 	{
-		return is_instance_of(jni::class_object<T>());
+		return is_instance_of(raw_object<T>::class_object());
 	}
 
 	[[nodiscard]] bool is_instance_of(ref<class_> cls) const noexcept
