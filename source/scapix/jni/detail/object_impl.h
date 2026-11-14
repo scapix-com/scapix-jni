@@ -28,13 +28,13 @@ public:
 	// new_object
 
 	template <init_method Type, typename ...Args>
-	static auto new_object(Args&&... args)
+	static local_ref<object<ClassName>> new_object(Args&&... args)
 	{
 		return new_object<Type>(method_id<"<init>", Type>(), std::forward<Args>(args)...);
 	}
 
 	template <init_method Type, typename ...Args>
-	static auto new_object(jmethodID id, Args&&... args)
+	static local_ref<object<ClassName>> new_object(jmethodID id, Args&&... args)
 	{
 		return detail::api::call<Type>::template new_object<object<ClassName>>(class_object().handle(), id, std::forward<Args>(args)...);
 	}
