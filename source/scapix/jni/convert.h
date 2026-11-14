@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_CONVERT_H
 #define SCAPIX_JNI_CONVERT_H
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
