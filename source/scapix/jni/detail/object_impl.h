@@ -23,9 +23,6 @@ namespace scapix::jni::detail {
 template <fixed_string ClassName>
 class object_impl
 {
-	static constexpr auto class_name = ClassName;
-	using handle_type = jobject;
-
 public:
 
 	// new_object
@@ -160,8 +157,8 @@ public:
 
 protected:
 
-	object_impl(handle_type h) : handle_(h) {}
-	handle_type handle() const { return handle_; }
+	object_impl(jobject h) : handle_(h) {}
+	jobject handle() const { return handle_; }
 
 private:
 
@@ -182,7 +179,7 @@ private:
 	template <fixed_string Name, typename Type>
 	static jfieldID static_field_id();
 
-	handle_type handle_;
+	jobject handle_;
 
 };
 

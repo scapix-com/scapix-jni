@@ -27,14 +27,14 @@ This implements the option "Cache a reference to the ClassLoader object somewher
 template<>
 inline ref<class_> detail::object_impl<"java/lang/Thread">::class_object()
 {
-	static const immortal<global_ref<class_>> cls(class_::find_class(class_name));
+	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/Thread"));
 	return cls;
 }
 
 template<>
 inline ref<class_> detail::object_impl<"java/lang/ClassLoader">::class_object()
 {
-	static const immortal<global_ref<class_>> cls(class_::find_class(class_name));
+	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/ClassLoader"));
 	return cls;
 }
 
