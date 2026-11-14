@@ -31,8 +31,8 @@ template<> struct signature<jlong>    { static constexpr fixed_string value = "J
 template<> struct signature<jfloat>   { static constexpr fixed_string value = "F"; };
 template<> struct signature<jdouble>  { static constexpr fixed_string value = "D"; };
 
-template <typename T>
-struct signature<ref<T>>
+template <typename T, scope Scope>
+struct signature<ref<T, Scope>>
 {
 	static constexpr auto value = signature_v<T>;
 };
