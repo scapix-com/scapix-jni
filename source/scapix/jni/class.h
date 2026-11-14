@@ -33,9 +33,9 @@ public:
 		return detail::check_result<class_>(detail::env()->FindClass(name));
 	}
 
-	local_ref<class_> get_superclass() const
+	local_ref<class_> get_superclass() const noexcept
 	{
-		return detail::check_result<class_>(detail::env()->GetSuperclass(handle()));
+		return local_ref<class_>(detail::env()->GetSuperclass(handle()));
 	}
 
 	bool is_assignable_from(ref<class_> source) const noexcept
