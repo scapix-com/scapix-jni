@@ -30,23 +30,6 @@ struct redirector
 	T value;
 };
 
-// canonical_ref
-
-template <typename T>
-struct canonical_ref
-{
-	using type = T;
-};
-
-template <typename T, typename Extends, scope Scope>
-struct canonical_ref<ref<generic<T, Extends>, Scope>>
-{
-	using type = ref<T, Scope>;
-};
-
-template <typename T>
-using canonical_ref_t = typename canonical_ref<T>::type;
-
 // convert
 
 template <typename Jni, typename Cpp>
@@ -55,7 +38,7 @@ struct convert;
 template <typename Jni, typename Cpp>
 decltype(auto) convert_jni(Cpp&& cpp)
 {
-	return convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(std::forward<Cpp>(cpp));
+	return convert<remove_erased_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(std::forward<Cpp>(cpp));
 }
 
 template <typename Cpp, typename Jni>
@@ -64,19 +47,19 @@ decltype(auto) convert_cpp(Jni&& jni)
 	if (!jni)
 		return std::remove_cvref_t<Cpp>();
 
-	return convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(std::forward<Jni>(jni));
+	return convert<remove_erased_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(std::forward<Jni>(jni));
 }
 
 template<typename Jni, typename Cpp>
 concept has_convert_jni = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
 {
-	jni = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(cpp);
+	jni = convert<remove_erased_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::jni(cpp);
 };
 
 template<typename Jni, typename Cpp>
 concept has_convert_cpp = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
 {
-	cpp = convert<canonical_ref_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(jni);
+	cpp = convert<remove_erased_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(jni);
 };
 
 /*

@@ -16,8 +16,17 @@ namespace scapix::jni {
 template <typename T, typename ...Params>
 struct generic_type;
 
-template <typename T, typename Extends = object<>>
-struct generic;
+// erased
+//
+// Type T with JNI signature of Erasure.
+//
+// Java erases type variables to their first bound (java.lang.Object, if not bounded):
+// the signature of "E get(int)" in List<E> is "(I)Ljava/lang/Object;", for any E.
+//
+// list->call_method<"get", ref<erased<java::lang::String>>(jint)>(0);
+
+template <typename T, typename Erasure = object<>>
+class erased;
 
 //template <typename T>
 //struct extends;
@@ -43,8 +52,8 @@ struct element_type<generic_type<T, Params...>>
 	using type = element_type_t<T>;
 };
 
-template <typename T, typename Extends>
-struct element_type<generic<T, Extends>>
+template <typename T, typename Erasure>
+struct element_type<erased<T, Erasure>>
 {
 	using type = element_type_t<T>;
 };

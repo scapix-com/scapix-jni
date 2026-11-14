@@ -273,13 +273,13 @@ struct convert<ref<generic_type<java_util_treemap, JK, JV>>, std::map<K, V, C, A
 
 		while (i->call_method<"hasNext", jboolean()>())
 		{
-			auto entry = i->call_method<"next", ref<generic<object<"java/util/Map$Entry">>>()>();
+			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
 
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<generic<JK>>()>()),
-				convert_cpp<V>(entry->call_method<"getValue", ref<generic<JV>>()>())
+				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
+				convert_cpp<V>(entry->call_method<"getValue", ref<erased<JV>>()>())
 			);
 		}
 
@@ -291,7 +291,7 @@ struct convert<ref<generic_type<java_util_treemap, JK, JV>>, std::map<K, V, C, A
 		auto tm = new_object<java_util_treemap, void()>();
 
 		for (auto& i : m)
-			tm->call_method<"put", ref<generic<JV>>(ref<generic<JK>>, ref<generic<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
+			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
 
 		return tm;
 	}
@@ -313,13 +313,13 @@ struct convert<ref<generic_type<java_util_map, JK, JV>>, std::map<K, V, C, A>>
 
 		while (i->call_method<"hasNext", jboolean()>())
 		{
-			auto entry = i->call_method<"next", ref<generic<object<"java/util/Map$Entry">>>()>();
+			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
 
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<generic<JK>>()>()),
-				convert_cpp<V>(entry->call_method<"getValue", ref<generic<JV>>()>())
+				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
+				convert_cpp<V>(entry->call_method<"getValue", ref<erased<JV>>()>())
 			);
 		}
 
@@ -331,7 +331,7 @@ struct convert<ref<generic_type<java_util_map, JK, JV>>, std::map<K, V, C, A>>
 		auto tm = new_object<java_util_treemap, void()>();
 
 		for (auto& i : m)
-			tm->call_method<"put", ref<generic<JV>>(ref<generic<JK>>, ref<generic<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
+			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
 
 		return static_pointer_cast<java_util_map>(std::move(tm));
 	}
@@ -353,7 +353,7 @@ struct convert<ref<generic_type<java_util_treeset, JE>>, std::set<K, C, A>>
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<K>(i->call_method<"next", ref<generic<JE>>()>())
+				convert_cpp<K>(i->call_method<"next", ref<erased<JE>>()>())
 			);
 		}
 
@@ -365,7 +365,7 @@ struct convert<ref<generic_type<java_util_treeset, JE>>, std::set<K, C, A>>
 		auto set = new_object<java_util_treeset, void()>();
 
 		for (auto& i : s)
-			set->call_method<"add", jboolean(ref<generic<JE>>)>(convert_jni<ref<JE>>(i));
+			set->call_method<"add", jboolean(ref<erased<JE>>)>(convert_jni<ref<JE>>(i));
 
 		return set;
 	}
@@ -385,13 +385,13 @@ struct convert<ref<generic_type<java_util_hashmap, JK, JV>>, std::unordered_map<
 
 		while (i->call_method<"hasNext", jboolean()>())
 		{
-			auto entry = i->call_method<"next", ref<generic<object<"java/util/Map$Entry">>>()>();
+			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
 
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<generic<JK>>()>()),
-				convert_cpp<T>(entry->call_method<"getValue", ref<generic<JV>>()>())
+				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
+				convert_cpp<T>(entry->call_method<"getValue", ref<erased<JV>>()>())
 			);
 		}
 
@@ -403,7 +403,7 @@ struct convert<ref<generic_type<java_util_hashmap, JK, JV>>, std::unordered_map<
 		auto tm = new_object<java_util_hashmap, void()>();
 
 		for (auto& i : m)
-			tm->call_method<"put", ref<generic<JV>>(ref<generic<JK>>, ref<generic<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
+			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
 
 		return tm;
 	}
@@ -425,7 +425,7 @@ struct convert<ref<generic_type<java_util_hashset, JE>>, std::unordered_set<K, H
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<K>(i->call_method<"next", ref<generic<JE>>()>())
+				convert_cpp<K>(i->call_method<"next", ref<erased<JE>>()>())
 			);
 		}
 
@@ -437,7 +437,7 @@ struct convert<ref<generic_type<java_util_hashset, JE>>, std::unordered_set<K, H
 		auto set = new_object<java_util_hashset, void()>();
 
 		for (auto& i : s)
-			set->call_method<"add", jboolean(ref<generic<JE>>)>(convert_jni<ref<JE>>(i));
+			set->call_method<"add", jboolean(ref<erased<JE>>)>(convert_jni<ref<JE>>(i));
 
 		return set;
 	}

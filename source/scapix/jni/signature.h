@@ -55,10 +55,10 @@ struct signature<generic_type<T, Params...>>
 	static constexpr auto value = signature_v<T>;
 };
 
-template <typename T, typename Extends>
-struct signature<generic<T, Extends>>
+template <typename T, typename Erasure>
+struct signature<erased<T, Erasure>>
 {
-	static constexpr auto value = signature_v<Extends>;
+	static constexpr auto value = signature_v<Erasure>;
 };
 
 template <typename R, typename ...Args>

@@ -14,7 +14,7 @@
 #include <scapix/core/meta/iota.h>
 #include <scapix/jni/env.h>
 #include <scapix/jni/object_traits.h>
-#include <scapix/jni/fwd/element.h>
+#include <scapix/jni/element.h>
 #include <scapix/jni/fwd/ref.h>
 
 namespace scapix::jni {
@@ -146,6 +146,32 @@ constexpr std::size_t handle_type()
 
 template <reference T>
 using handle_type_t = typename std::tuple_element_t<detail::handle_type<T>(), detail::handle_types>::handle_type;
+
+// remove_erased
+//
+// erased<T, Erasure>               ->  T
+// ref<erased<T, Erasure>, Scope>   ->  ref<T, Scope>
+
+template <typename T>
+struct remove_erased
+{
+	using type = T;
+};
+
+template <typename T>
+using remove_erased_t = typename remove_erased<T>::type;
+
+template <typename T, typename Erasure>
+struct remove_erased<erased<T, Erasure>>
+{
+	using type = T;
+};
+
+template <typename T, scope Scope>
+struct remove_erased<ref<T, Scope>>
+{
+	using type = ref<remove_erased_t<T>, Scope>;
+};
 
 // is_convertible_object
 
