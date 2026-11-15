@@ -22,17 +22,17 @@ struct type<jni::ref<T>>
 	static local_ref<T> get_static_field(jclass cls, jfieldID id) noexcept { return local_ref<T>(env()->GetStaticObjectField(cls, id)); }
 	static void set_static_field(jclass cls, jfieldID id, jni::ref<T> value) noexcept { env()->SetStaticObjectField(cls, id, value.handle()); }
 
-	template <typename ...Args> static local_ref<T> call_method(jobject obj, jmethodID id, Args... args) noexcept { return local_ref<T>(env()->CallObjectMethod(obj, id, args...)); }
-	template <typename ...Args> static local_ref<T> call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return local_ref<T>(env()->CallNonvirtualObjectMethod(obj, cls, id, args...)); }
-	template <typename ...Args> static local_ref<T> call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return local_ref<T>(env()->CallStaticObjectMethod(cls, id, args...)); }
+	static local_ref<T> call_method(jobject obj, jmethodID id, auto... args) noexcept { return local_ref<T>(env()->CallObjectMethod(obj, id, args...)); }
+	static local_ref<T> call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return local_ref<T>(env()->CallNonvirtualObjectMethod(obj, cls, id, args...)); }
+	static local_ref<T> call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return local_ref<T>(env()->CallStaticObjectMethod(cls, id, args...)); }
 };
 
 template <>
 struct type<void>
 {
-	template <typename ...Args> static void call_method(jobject obj, jmethodID id, Args... args) noexcept { env()->CallVoidMethod(obj, id, args...); }
-	template <typename ...Args> static void call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { env()->CallNonvirtualVoidMethod(obj, cls, id, args...); }
-	template <typename ...Args> static void call_static_method(jclass cls, jmethodID id, Args... args) noexcept { env()->CallStaticVoidMethod(cls, id, args...); }
+	static void call_method(jobject obj, jmethodID id, auto... args) noexcept { env()->CallVoidMethod(obj, id, args...); }
+	static void call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { env()->CallNonvirtualVoidMethod(obj, cls, id, args...); }
+	static void call_static_method(jclass cls, jmethodID id, auto... args) noexcept { env()->CallStaticVoidMethod(cls, id, args...); }
 };
 
 template <>
@@ -43,9 +43,9 @@ struct type<jboolean>
 	static jboolean get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticBooleanField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jboolean value) noexcept { env()->SetStaticBooleanField(cls, id, value); }
 
-	template <typename ...Args> static jboolean call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallBooleanMethod(obj, id, args...); }
-	template <typename ...Args> static jboolean call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualBooleanMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jboolean call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticBooleanMethod(cls, id, args...); }
+	static jboolean call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallBooleanMethod(obj, id, args...); }
+	static jboolean call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualBooleanMethod(obj, cls, id, args...); }
+	static jboolean call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticBooleanMethod(cls, id, args...); }
 
 	static jbooleanArray new_array(jsize len) noexcept { return env()->NewBooleanArray(len); }
 	static jboolean* get_array_elements(jbooleanArray array, jboolean* isCopy) noexcept { return env()->GetBooleanArrayElements(array, isCopy); }
@@ -62,9 +62,9 @@ struct type<jbyte>
 	static jbyte get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticByteField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jbyte value) noexcept { env()->SetStaticByteField(cls, id, value); }
 
-	template <typename ...Args> static jbyte call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallByteMethod(obj, id, args...); }
-	template <typename ...Args> static jbyte call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualByteMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jbyte call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticByteMethod(cls, id, args...); }
+	static jbyte call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallByteMethod(obj, id, args...); }
+	static jbyte call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualByteMethod(obj, cls, id, args...); }
+	static jbyte call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticByteMethod(cls, id, args...); }
 
 	static jbyteArray new_array(jsize len) noexcept { return env()->NewByteArray(len); }
 	static jbyte* get_array_elements(jbyteArray array, jboolean* isCopy) noexcept { return env()->GetByteArrayElements(array, isCopy); }
@@ -81,9 +81,9 @@ struct type<jchar>
 	static jchar get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticCharField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jchar value) noexcept { env()->SetStaticCharField(cls, id, value); }
 
-	template <typename ...Args> static jchar call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallCharMethod(obj, id, args...); }
-	template <typename ...Args> static jchar call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualCharMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jchar call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticCharMethod(cls, id, args...); }
+	static jchar call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallCharMethod(obj, id, args...); }
+	static jchar call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualCharMethod(obj, cls, id, args...); }
+	static jchar call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticCharMethod(cls, id, args...); }
 
 	static jcharArray new_array(jsize len) noexcept { return env()->NewCharArray(len); }
 	static jchar* get_array_elements(jcharArray array, jboolean* isCopy) noexcept { return env()->GetCharArrayElements(array, isCopy); }
@@ -100,9 +100,9 @@ struct type<jshort>
 	static jshort get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticShortField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jshort value) noexcept { env()->SetStaticShortField(cls, id, value); }
 
-	template <typename ...Args> static jshort call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallShortMethod(obj, id, args...); }
-	template <typename ...Args> static jshort call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualShortMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jshort call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticShortMethod(cls, id, args...); }
+	static jshort call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallShortMethod(obj, id, args...); }
+	static jshort call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualShortMethod(obj, cls, id, args...); }
+	static jshort call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticShortMethod(cls, id, args...); }
 
 	static jshortArray new_array(jsize len) noexcept { return env()->NewShortArray(len); }
 	static jshort* get_array_elements(jshortArray array, jboolean* isCopy) noexcept { return env()->GetShortArrayElements(array, isCopy); }
@@ -119,9 +119,9 @@ struct type<jint>
 	static jint get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticIntField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jint value) noexcept { env()->SetStaticIntField(cls, id, value); }
 
-	template <typename ...Args> static jint call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallIntMethod(obj, id, args...); }
-	template <typename ...Args> static jint call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualIntMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jint call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticIntMethod(cls, id, args...); }
+	static jint call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallIntMethod(obj, id, args...); }
+	static jint call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualIntMethod(obj, cls, id, args...); }
+	static jint call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticIntMethod(cls, id, args...); }
 
 	static jintArray new_array(jsize len) noexcept { return env()->NewIntArray(len); }
 	static jint* get_array_elements(jintArray array, jboolean* isCopy) noexcept { return env()->GetIntArrayElements(array, isCopy); }
@@ -138,9 +138,9 @@ struct type<jlong>
 	static jlong get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticLongField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jlong value) noexcept { env()->SetStaticLongField(cls, id, value); }
 
-	template <typename ...Args> static jlong call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallLongMethod(obj, id, args...); }
-	template <typename ...Args> static jlong call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualLongMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jlong call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticLongMethod(cls, id, args...); }
+	static jlong call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallLongMethod(obj, id, args...); }
+	static jlong call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualLongMethod(obj, cls, id, args...); }
+	static jlong call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticLongMethod(cls, id, args...); }
 
 	static jlongArray new_array(jsize len) noexcept { return env()->NewLongArray(len); }
 	static jlong* get_array_elements(jlongArray array, jboolean* isCopy) noexcept { return env()->GetLongArrayElements(array, isCopy); }
@@ -157,9 +157,9 @@ struct type<jfloat>
 	static jfloat get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticFloatField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jfloat value) noexcept { env()->SetStaticFloatField(cls, id, value); }
 
-	template <typename ...Args> static jfloat call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallFloatMethod(obj, id, args...); }
-	template <typename ...Args> static jfloat call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualFloatMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jfloat call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticFloatMethod(cls, id, args...); }
+	static jfloat call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallFloatMethod(obj, id, args...); }
+	static jfloat call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualFloatMethod(obj, cls, id, args...); }
+	static jfloat call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticFloatMethod(cls, id, args...); }
 
 	static jfloatArray new_array(jsize len) noexcept { return env()->NewFloatArray(len); }
 	static jfloat* get_array_elements(jfloatArray array, jboolean* isCopy) noexcept { return env()->GetFloatArrayElements(array, isCopy); }
@@ -176,9 +176,9 @@ struct type<jdouble>
 	static jdouble get_static_field(jclass cls, jfieldID id) noexcept { return env()->GetStaticDoubleField(cls, id); }
 	static void set_static_field(jclass cls, jfieldID id, jdouble value) noexcept { env()->SetStaticDoubleField(cls, id, value); }
 
-	template <typename ...Args> static jdouble call_method(jobject obj, jmethodID id, Args... args) noexcept { return env()->CallDoubleMethod(obj, id, args...); }
-	template <typename ...Args> static jdouble call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args) noexcept { return env()->CallNonvirtualDoubleMethod(obj, cls, id, args...); }
-	template <typename ...Args> static jdouble call_static_method(jclass cls, jmethodID id, Args... args) noexcept { return env()->CallStaticDoubleMethod(cls, id, args...); }
+	static jdouble call_method(jobject obj, jmethodID id, auto... args) noexcept { return env()->CallDoubleMethod(obj, id, args...); }
+	static jdouble call_nonvirtual_method(jobject obj, jclass cls, jmethodID id, auto... args) noexcept { return env()->CallNonvirtualDoubleMethod(obj, cls, id, args...); }
+	static jdouble call_static_method(jclass cls, jmethodID id, auto... args) noexcept { return env()->CallStaticDoubleMethod(cls, id, args...); }
 
 	static jdoubleArray new_array(jsize len) noexcept { return env()->NewDoubleArray(len); }
 	static jdouble* get_array_elements(jdoubleArray array, jboolean* isCopy) noexcept { return env()->GetDoubleArrayElements(array, isCopy); }
