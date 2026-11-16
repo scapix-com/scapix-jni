@@ -9,66 +9,69 @@
 
 #include <utility>
 #include <scapix/jni/env.h>
+#include <scapix/jni/ref.h>
+#include <scapix/jni/detail/exception.h>
 
 namespace scapix::jni {
+
+// RAII wrapper for PushLocalFrame()/PopLocalFrame().
+//
+// Local references created while the frame is active are freed when the frame is popped,
+// so owning references to them (local_ref) must be destroyed or released before that.
+// To keep one object alive past the frame, move its local_ref to pop().
+//
+// JNI local frames form a stack: PopLocalFrame() always pops the topmost frame.
+// Therefore local_frame objects must be destroyed in reverse order of construction
+// (automatic for local variables), and are not copyable or movable.
 
 class local_frame
 {
 public:
 
-	local_frame(jint capacity)
+	explicit local_frame(jint capacity)
 	{
-		frame = detail::env()->PushLocalFrame(capacity);
+		detail::check_result(detail::env()->PushLocalFrame(capacity));
+		active = true;
 	}
 
 	~local_frame()
 	{
-		if (frame == 0)
-			detail::env()->PopLocalFrame(0);
-	}
-
-	jobject pop(jobject result = 0)
-	{
-		if (frame == 0)
-		{
-			frame = -1;
-			return detail::env()->PopLocalFrame(result);
-		}
-
-		return 0;
+		pop();
 	}
 
 	local_frame(const local_frame&) = delete;
 	local_frame& operator = (const local_frame&) = delete;
+	local_frame(local_frame&&) = delete;
+	local_frame& operator = (local_frame&&) = delete;
 
-	local_frame(local_frame&& source) :
-		frame(source.frame)
+	explicit operator bool() const noexcept { return active; }
+
+	// Pop the frame, freeing all local references created in it.
+
+	void pop() noexcept
 	{
-		source.frame = -1;
+		if (std::exchange(active, false))
+			detail::env()->PopLocalFrame(nullptr);
 	}
 
-	local_frame& operator = (local_frame&& source)
-	{
-		local_frame(std::move(source)).swap(*this);
-		return *this;
-	}
+	// Pop the frame, moving local reference created in it to the previous frame:
+	//
+	//     return frame.pop(std::move(result));
 
-	void swap(local_frame& source)
+	template <typename T>
+	local_ref<T> pop(local_ref<T>&& result) noexcept
 	{
-		using std::swap;
-		swap(frame, source.frame);
+		if (std::exchange(active, false))
+			return local_ref<T>(detail::env()->PopLocalFrame(result.release()));
+
+		return result;
 	}
 
 private:
 
-	jint frame;
+	bool active = false;
 
 };
-
-inline void swap(local_frame& a, local_frame& b)
-{
-	a.swap(b);
-}
 
 } // namespace scapix::jni
 
