@@ -10,33 +10,37 @@
 #include <utility>
 #include <cassert>
 #include <scapix/jni/ref.h>
+#include <scapix/jni/detail/exception.h>
 
 namespace scapix::jni {
 
-template <typename T>
+// RAII wrapper for MonitorEnter()/MonitorExit().
+//
+// Monitor must be exited on the same thread it was entered on.
+
 class monitor
 {
 public:
 
-	// Generally, caller is responsible to insure the reference (not only the object) is alive while monitor is active.
+	// Generally, caller is responsible to ensure the reference (not only the object) is alive while monitor is active.
 	// But if an owning reference is moved here, monitor will take ownership.
 
-	monitor(ref<T> obj)
+	explicit monitor(ref<> obj)
 		: object(std::move(obj))
 	{
-		[[maybe_unused]] auto result = detail::env()->MonitorEnter(object.handle());
-		assert(result == 0);
+		assert(object);
+		detail::check_result(detail::env()->MonitorEnter(object.handle()));
 	}
 
 	monitor(const monitor&) = delete;
 	monitor& operator = (const monitor&) = delete;
 
-	monitor(monitor&& source) :
-		object(source.release())
+	monitor(monitor&& source) noexcept
+		: object(std::move(source.object))
 	{
 	}
 
-	monitor& operator = (monitor&& source)
+	monitor& operator = (monitor&& source) noexcept
 	{
 		monitor(std::move(source)).swap(*this);
 		return *this;
@@ -51,15 +55,15 @@ public:
 		}
 	}
 
-	explicit operator bool() const { return bool(object); }
-	ref<T> get() const { return object; }
+	explicit operator bool() const noexcept { return bool(object); }
+	ref<> get() const noexcept { return object; }
 
-	void reset()
+	void reset() noexcept
 	{
 		monitor().swap(*this);
 	}
 
-	void swap(monitor& source)
+	void swap(monitor& source) noexcept
 	{
 		using std::swap;
 		swap(object, source.object);
@@ -67,15 +71,13 @@ public:
 
 private:
 
-	monitor() {}
-	ref<T> release() { return std::move(object); }
+	monitor() noexcept = default;
 
-	ref<T> object;
+	ref<> object;
 
 };
 
-template <typename T>
-inline void swap(monitor<T>& a, monitor<T>& b)
+inline void swap(monitor& a, monitor& b) noexcept
 {
 	a.swap(b);
 }
