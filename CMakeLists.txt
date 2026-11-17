@@ -6,6 +6,26 @@ option(SCAPIX_JNI_CACHE_CLASS_LOADER "Load classes with cached ClassLoader inste
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "Automatically attach native threads to JVM" ON)
 option(SCAPIX_JNI_STANDARD_UTF8 "Convert strings using standard UTF-8 instead of JNI modified UTF-8" ON)
 
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(scapix_jni_top_level ON)
+else()
+    set(scapix_jni_top_level OFF)
+endif()
+
+option(SCAPIX_JNI_BUILD_TESTS "Build scapix-jni tests" ${scapix_jni_top_level})
+
+set(CMAKE_CXX_STANDARD 20)
+
+if(scapix_jni_top_level)
+    include(FetchContent)
+    FetchContent_Declare(
+      cmodule
+      URL https://github.com/scapix-com/cmodule/archive/refs/tags/v2.6.0.tar.gz
+      URL_HASH SHA256=7ee432c13bf91d3c86d2ab675ba379cea079e39b9efbe183f2ab4e7b479cee90
+    )
+    FetchContent_MakeAvailable(cmodule)
+endif()
+
 find_package(ScapixCore REQUIRED)
 
 if(ANDROID)
@@ -107,3 +127,8 @@ function(scapix_jni_source_group)
     get_target_property(sources scapix::jni INTERFACE_SOURCES)
     source_group(TREE "${scapix_jni_dir}/source" PREFIX "scapix-jni" FILES ${sources})
 endfunction()
+
+if(SCAPIX_JNI_BUILD_TESTS AND NOT ANDROID)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
