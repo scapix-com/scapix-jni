@@ -22,12 +22,22 @@ In some JVM scenarios (notably on Android), JNI FindClass() fails to load applic
 More information here: [Why didn’t FindClass find my class?](https://developer.android.com/training/articles/perf-jni#faq:-why-didnt-findclass-find-my-class).
 This implements the option "Cache a reference to the ClassLoader object somewhere handy, and issue loadClass calls directly."
 
+Classes are loaded with Class.forName(name, false, loader) instead of ClassLoader.loadClass(name),
+because loadClass() does not support array classes (like "[I" or "[Ljava.lang.String;").
+
 */
 
 template<>
 inline ref<class_> detail::object_impl<"java/lang/Thread">::class_object()
 {
 	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/Thread"));
+	return cls;
+}
+
+template<>
+inline ref<class_> detail::object_impl<"java/lang/Class">::class_object()
+{
+	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/Class"));
 	return cls;
 }
 
@@ -49,7 +59,7 @@ public:
 
 	static local_ref<class_> find_class(const char* name)
 	{
-		return loader->call_method<"loadClass", ref<class_>(ref<string>)>(new_object<string>(name));
+		return class_::call_static_method<"forName", ref<class_>(ref<string>, jboolean, ref<object<"java/lang/ClassLoader">>)>(new_object<string>(name), JNI_FALSE, loader);
 	}
 
 private:
