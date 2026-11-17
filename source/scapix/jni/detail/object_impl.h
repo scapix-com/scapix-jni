@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_DETAIL_OBJECT_IMPL_H
 #define SCAPIX_JNI_DETAIL_OBJECT_IMPL_H
 
+#include <string_view>
 #include <utility>
 #include <scapix/core/immortal.h>
 #include <scapix/core/fixed_string.h>
@@ -226,12 +227,27 @@ inline ref<class_> object_impl<ClassName>::class_object()
 {
 
 #ifdef SCAPIX_JNI_CACHE_CLASS_LOADER
-	static const immortal<global_ref<class_>> cls(class_loader::find_class(ClassName.replaced('/', '.')));
-#else
-	static const immortal<global_ref<class_>> cls(class_::find_class(ClassName));
-#endif
 
+	// Java platform classes are always found by FindClass(), and class_loader itself uses
+	// java/lang/Thread, java/lang/ClassLoader and java/lang/Class to load other classes.
+
+	if constexpr (std::string_view(ClassName).starts_with("java/"))
+	{
+		static const immortal<global_ref<class_>> cls(class_::find_class(ClassName));
+		return cls;
+	}
+	else
+	{
+		static const immortal<global_ref<class_>> cls(class_loader::find_class(ClassName.replaced('/', '.')));
+		return cls;
+	}
+
+#else
+
+	static const immortal<global_ref<class_>> cls(class_::find_class(ClassName));
 	return cls;
+
+#endif
 }
 
 template <fixed_string ClassName>

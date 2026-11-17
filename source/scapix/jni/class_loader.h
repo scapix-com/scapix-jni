@@ -27,27 +27,6 @@ because loadClass() does not support array classes (like "[I" or "[Ljava.lang.St
 
 */
 
-template<>
-inline ref<class_> detail::object_impl<"java/lang/Thread">::class_object()
-{
-	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/Thread"));
-	return cls;
-}
-
-template<>
-inline ref<class_> detail::object_impl<"java/lang/Class">::class_object()
-{
-	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/Class"));
-	return cls;
-}
-
-template<>
-inline ref<class_> detail::object_impl<"java/lang/ClassLoader">::class_object()
-{
-	static const immortal<global_ref<class_>> cls(class_::find_class("java/lang/ClassLoader"));
-	return cls;
-}
-
 class class_loader
 {
 public:
