@@ -19,6 +19,8 @@ class object;
 template <fixed_string ClassName, typename ...Bases>
 struct object_traits<object<ClassName, Bases...>>
 {
+	static_assert(ClassName != "java/lang/Object", "java/lang/Object should not specify base classes");
+
 	static constexpr auto class_name = ClassName;
 	using base_classes = std::tuple<Bases...>;
 };
