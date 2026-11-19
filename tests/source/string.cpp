@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <scapix/jni/string.h>
 #include <scapix/jni/convert.h>
@@ -10,11 +12,12 @@ namespace jni = scapix::jni;
 
 namespace {
 
-// jchar is not char16_t on all platforms (unsigned short on Windows).
+// jchar is not char16_t on all platforms (unsigned short on Windows, uint16_t on Android),
+// and std::basic_string_view<jchar> needs std::char_traits<jchar>, which libc++ 19+ does not provide.
 
-std::u16string to_u16(std::basic_string_view<jchar> view)
+std::u16string to_u16(std::span<const jchar> chars)
 {
-	return std::u16string(view.begin(), view.end());
+	return std::u16string(chars.begin(), chars.end());
 }
 
 } // namespace
@@ -37,6 +40,53 @@ TEST_CASE("string::new_object from UTF-16", "[string]")
 	CHECK(s->length<char>() == 4); // U+05D0 is 2 bytes in (modified) UTF-8
 }
 
+TEST_CASE("string::new_object from UTF-16 span", "[string]")
+{
+	SECTION("array")
+	{
+		const jchar buf[] = { 'a', 'b', 0x05D0 };
+		auto s = jni::string::new_object(std::span(buf));
+
+		CHECK(to_u16(s->chars()) == std::u16string{ u'a', u'b', char16_t(0x05D0) });
+	}
+
+	SECTION("subspan (not null terminated)")
+	{
+		const std::vector<jchar> buf = { 'x', 'a', 'b', 'c', 'y' };
+		auto s = jni::string::new_object(std::span(buf).subspan(1, 3));
+
+		CHECK(s->length() == 3);
+		CHECK(to_u16(s->chars()) == u"abc");
+	}
+
+	SECTION("embedded null")
+	{
+		const jchar buf[] = { 'a', 0, 'b' };
+		auto s = jni::string::new_object(std::span(buf));
+
+		CHECK(s->length() == 3);
+		CHECK(s->length<char>() == 4); // U+0000 is 2 bytes (C0 80) in modified UTF-8
+		CHECK(to_u16(s->chars()) == std::u16string(u"a\0b", 3));
+	}
+
+	SECTION("empty")
+	{
+		auto s = jni::string::new_object(std::span<const jchar>());
+
+		REQUIRE(s);
+		CHECK(s->length() == 0);
+	}
+
+	SECTION("round trip from string_chars")
+	{
+		auto original = jni::string::new_object("hello");
+		auto copy = jni::string::new_object(original->chars());
+
+		CHECK(copy != original);
+		CHECK(to_u16(copy->chars()) == u"hello");
+	}
+}
+
 TEST_CASE("string::chars", "[string]")
 {
 	auto s = jni::string::new_object("abc");
@@ -46,7 +96,7 @@ TEST_CASE("string::chars", "[string]")
 		auto chars = s->chars();
 		REQUIRE(chars.size() == 3);
 		CHECK(chars[0] == 'a');
-		CHECK(to_u16(chars.view()) == u"abc");
+		CHECK(to_u16(chars) == u"abc");
 		CHECK_THROWS_AS(chars.at(3), std::out_of_range);
 
 		chars.release();
@@ -56,19 +106,19 @@ TEST_CASE("string::chars", "[string]")
 	SECTION("modified UTF-8")
 	{
 		auto chars = s->chars<char>();
-		CHECK(chars.view() == "abc");
+		CHECK(std::string_view(chars.data(), chars.size()) == "abc");
 	}
 
 	SECTION("critical")
 	{
 		auto chars = s->chars<jchar, jni::lock::critical>();
-		CHECK(to_u16(chars.view()) == u"abc");
+		CHECK(to_u16(chars) == u"abc");
 	}
 
 	SECTION("partial")
 	{
 		auto chars = s->chars(2);
-		CHECK(to_u16(chars.view()) == u"ab");
+		CHECK(to_u16(chars) == u"ab");
 	}
 }
 
@@ -78,7 +128,7 @@ TEST_CASE("string::get_region", "[string]")
 
 	jchar buf[3];
 	s->get_region(1, 3, buf);
-	CHECK(to_u16({ buf, 3 }) == u"bcd");
+	CHECK(to_u16(buf) == u"bcd");
 
 	CHECK_THROWS_AS(s->get_region(5, 3, buf), jni::vm_exception);
 }

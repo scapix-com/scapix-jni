@@ -15,7 +15,6 @@
 #include <cstddef>
 #include <span>
 #include <stdexcept>
-#include <string_view>
 #include <scapix/jni/object.h>
 #include <scapix/jni/lock.h>
 #include <scapix/jni/detail/api/string.h>
@@ -50,11 +49,6 @@ public:
 
 	jboolean is_copy() const { return is_copy_; }
 
-	std::basic_string_view<Char> view() const
-	{
-		return std::basic_string_view<Char>(this->data(), this->size());
-	}
-
 	// After a call to release() this is an empty span.
 
 	void release()
@@ -88,6 +82,11 @@ public:
 	static local_ref<string> new_object(const jchar* buf, jsize len)
 	{
 		return detail::check_result<string>(detail::env()->NewString(buf, len));
+	}
+
+	static local_ref<string> new_object(std::span<const jchar> str)
+	{
+		return new_object(str.data(), static_cast<jsize>(str.size()));
 	}
 
 	static local_ref<string> new_object(const char* buf)
