@@ -16,29 +16,47 @@
 
 namespace scapix::jni {
 
-// deduce_signature
-
 namespace detail {
 
 template <typename T>
-struct deduce_signature_impl;
+struct deduce_signature;
 
 template <class_type Class, return_type R, type... Args>
-struct deduce_signature_impl<R(Class::*)(Args...)>
+struct deduce_signature<R(Class::*)(Args...)>
 {
 	using type = R(Args...);
 };
 
 template <return_type R, reference T, type... Args>
-struct deduce_signature_impl<R(ref<T>, Args...)>
+struct deduce_signature<R(ref<T>, Args...)>
 {
 	using type = R(Args...);
 };
 
+template <typename Signature>
+struct prepend_ref_impl {};
+
+template <typename R, typename... Args>
+struct prepend_ref_impl<R(Args...)>
+{
+	template <reference T>
+	using type = R(ref<T>, Args...);
+};
+
+template <typename R, typename... Args>
+struct prepend_ref_impl<R(Args...) noexcept>
+{
+	template <reference T>
+	using type = R(ref<T>, Args...) noexcept;
+};
+
+template <typename Signature, typename T>
+using prepend_ref = typename prepend_ref_impl<Signature>::template type<T>;
+
 } // namespace detail
 
 template <typename CppType>
-using deduce_signature = typename detail::deduce_signature_impl<remove_function_qualifiers_t<std::remove_pointer_t<CppType>>>::type;
+using deduce_signature = typename detail::deduce_signature<remove_function_qualifiers_t<std::remove_pointer_t<CppType>>>::type;
 
 // native_method_info
 
@@ -49,8 +67,6 @@ struct native_method_info
 	using cpp_type = CppType;
 	constexpr static bool android_critical_native = AndroidCriticalNative;
 
-	constexpr native_method_info(fixed_string<char, N> name, cpp_type method) : name(name), method(method) {}
-
 	fixed_string<char, N> name;
 	cpp_type method;
 };
@@ -58,34 +74,15 @@ struct native_method_info
 template <fixed_string ClassName, native_method_info ...Methods>
 class native_methods;
 
-// native_method_helper
+namespace detail {
 
-template <function_type Signature>
-struct native_method_helper
+template <method JniType, bool AndroidCriticalNative = false>
+constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
-	template <class_type Class>
-	using member_ptr = Signature Class::*;
-};
+	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>(), AndroidCriticalNative>{name, ptr};
+}
 
-template <typename R, typename... Args>
-struct native_method_helper<R(Args...)>
-{
-	template <reference T>
-	using ptr = R(*)(ref<T>, Args...);
-
-	template <class_type Class>
-	using member_ptr = R(Class::*)(Args...);
-};
-
-template <typename R, typename... Args>
-struct native_method_helper<R(Args...) noexcept>
-{
-	template <reference T>
-	using ptr = R(*)(ref<T>, Args...) noexcept;
-
-	template <class_type Class>
-	using member_ptr = R(Class::*)(Args...) noexcept;
-};
+} // namespace detail
 
 // native_method
 
@@ -98,15 +95,15 @@ struct native_method_helper<R(Args...) noexcept>
 // Both types specified - use CppType to select overload.
 
 template <method JniType, function_type CppType, reference T>
-constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<CppType>::template ptr<T> ptr)
+constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<CppType, T>* ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 template <method JniType, function_type CppType, class_type Class>
-constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<CppType>::template member_ptr<Class> ptr)
+constexpr auto native_method(compile_time_string auto&& name, std::type_identity_t<CppType> Class::* ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 // static without ref<class_> parameter
@@ -114,21 +111,21 @@ constexpr auto native_method(compile_time_string auto&& name, typename native_me
 template <method JniType, function_type CppType>
 constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<CppType> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 // Only JniType specified - use JniType to select overload.
 
 template <method JniType, reference T>
-constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<JniType>::template ptr<T> ptr)
+constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<JniType, T>* ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 template <method JniType, class_type Class>
-constexpr auto native_method(compile_time_string auto&& name, typename native_method_helper<JniType>::template member_ptr<Class> ptr)
+constexpr auto native_method(compile_time_string auto&& name, std::type_identity_t<JniType> Class::* ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 // static without ref<class_> parameter
@@ -141,20 +138,20 @@ template <typename JniType>
 	requires method<JniType>
 constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<JniType> ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 template <method JniType>
 constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
-	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<JniType>(name, ptr);
 }
 
 // No types specified - only works if signature can be deduced and only for single overload.
 
 constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
-	return native_method_info<deduce_signature<decltype(ptr)>, decltype(ptr), string_size<decltype(name)>()>(name, ptr);
+	return detail::native_method<deduce_signature<decltype(ptr)>>(name, ptr);
 }
 
 // Android method marked @CriticalNative
@@ -163,7 +160,7 @@ constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 template <android_critical_native_type Type>
 constexpr auto android_critical_native(compile_time_string auto&& name, Type* ptr)
 {
-	return native_method_info<Type, decltype(ptr), string_size<decltype(name)>(), true>(name, ptr);
+	return detail::native_method<Type, true>(name, ptr);
 }
 
 } // namespace scapix::jni
