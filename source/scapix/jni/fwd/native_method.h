@@ -106,14 +106,6 @@ constexpr auto native_method(compile_time_string auto&& name, std::type_identity
 	return detail::native_method<JniType>(name, ptr);
 }
 
-// static without ref<class_> parameter
-
-template <method JniType, function_type CppType>
-constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<CppType> ptr)
-{
-	return detail::native_method<JniType>(name, ptr);
-}
-
 // Only JniType specified - use JniType to select overload.
 
 template <method JniType, reference T>
@@ -129,20 +121,10 @@ constexpr auto native_method(compile_time_string auto&& name, std::type_identity
 }
 
 // static without ref<class_> parameter
+// Accepts any single function or selects overload based on CppType (which defaults to JniType).
 
-// workaround for msvc 19.51 bug
-// https://developercommunity.microsoft.com/t/MSVC-C-overload-resolution-reports-C26/11143435
-
-//template <method JniType>
-template <typename JniType>
-	requires method<JniType>
-constexpr auto native_method(compile_time_string auto&& name, std::add_pointer_t<JniType> ptr)
-{
-	return detail::native_method<JniType>(name, ptr);
-}
-
-template <method JniType>
-constexpr auto native_method(compile_time_string auto&& name, auto ptr)
+template <method JniType, function_type CppType = JniType, typename Ptr = std::add_pointer_t<CppType>>
+constexpr auto native_method(compile_time_string auto&& name, Ptr ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
 }
