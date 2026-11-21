@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.25)
-
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "source/*")
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 
@@ -13,6 +11,8 @@ add_executable(scapix_jni_tests ${sources} ${java_sources})
 add_dependencies(scapix_jni_tests scapix_jni_tests_jar)
 target_compile_definitions(scapix_jni_tests PRIVATE SCAPIX_JNI_TESTS_JAR_FILE="${scapix_jni_tests_jar_file}")
 
+# Catch2 is built with this standard: std::string_view support must match the tests.
+set(CMAKE_CXX_STANDARD 20)
 find_package(Catch2 REQUIRED)
 target_link_libraries(scapix_jni_tests PRIVATE scapix::jni Catch2::Catch2)
 

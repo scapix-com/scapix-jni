@@ -1,0 +1,70 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "cmodule",
+      "hidden": true,
+      "description": "Dependencies provided by cmodule (built from source as part of the build)",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/cmodule.cmake"
+      }
+    },
+    {
+      "name": "default",
+      "displayName": "Default generator and compiler",
+      "inherits": "cmodule"
+    },
+    {
+      "name": "msvc",
+      "displayName": "Visual Studio 2026, MSVC",
+      "inherits": "cmodule",
+      "generator": "Visual Studio 18 2026",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "clang",
+      "displayName": "Visual Studio 2026, ClangCL",
+      "inherits": "msvc",
+      "toolset": "ClangCL",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "default", "configurePreset": "default", "configuration": "Debug" },
+    { "name": "msvc", "configurePreset": "msvc", "configuration": "Debug" },
+    { "name": "clang", "configurePreset": "clang", "configuration": "Debug" }
+  ],
+  "testPresets": [
+    { "name": "default", "configurePreset": "default", "configuration": "Debug", "output": { "outputOnFailure": true } },
+    { "name": "msvc", "configurePreset": "msvc", "configuration": "Debug", "output": { "outputOnFailure": true } },
+    { "name": "clang", "configurePreset": "clang", "configuration": "Debug", "output": { "outputOnFailure": true } }
+  ],
+  "workflowPresets": [
+    {
+      "name": "default",
+      "steps": [
+        { "type": "configure", "name": "default" },
+        { "type": "build", "name": "default" },
+        { "type": "test", "name": "default" }
+      ]
+    },
+    {
+      "name": "msvc",
+      "steps": [
+        { "type": "configure", "name": "msvc" },
+        { "type": "build", "name": "msvc" },
+        { "type": "test", "name": "msvc" }
+      ]
+    },
+    {
+      "name": "clang",
+      "steps": [
+        { "type": "configure", "name": "clang" },
+        { "type": "build", "name": "clang" },
+        { "type": "test", "name": "clang" }
+      ]
+    }
+  ]
+}

@@ -1,32 +1,13 @@
-cmake_minimum_required(VERSION 3.20...3.27)
+cmake_minimum_required(VERSION 3.28...4.5)
 
-project(scapix-jni CXX)
+project(scapix-jni VERSION 2.7.0 LANGUAGES CXX)
 
 option(SCAPIX_JNI_CACHE_CLASS_LOADER "Load classes with cached ClassLoader instead of JNI FindClass()" ON)
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "Automatically attach native threads to JVM" ON)
 option(SCAPIX_JNI_STANDARD_UTF8 "Convert strings using standard UTF-8 instead of JNI modified UTF-8" ON)
+option(SCAPIX_JNI_BUILD_TESTS "Build scapix-jni tests" ${PROJECT_IS_TOP_LEVEL})
 
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    set(scapix_jni_top_level ON)
-else()
-    set(scapix_jni_top_level OFF)
-endif()
-
-option(SCAPIX_JNI_BUILD_TESTS "Build scapix-jni tests" ${scapix_jni_top_level})
-
-set(CMAKE_CXX_STANDARD 20)
-
-if(scapix_jni_top_level)
-    include(FetchContent)
-    FetchContent_Declare(
-      cmodule
-      URL https://github.com/scapix-com/cmodule/archive/refs/tags/v2.6.0.tar.gz
-      URL_HASH SHA256=7ee432c13bf91d3c86d2ab675ba379cea079e39b9efbe183f2ab4e7b479cee90
-    )
-    FetchContent_MakeAvailable(cmodule)
-endif()
-
-find_package(ScapixCore REQUIRED)
+find_package(ScapixCore 2.6 REQUIRED)
 
 if(ANDROID)
 
