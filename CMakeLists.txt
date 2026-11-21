@@ -28,12 +28,11 @@ if(ANDROID)
 else()
 
     # Function scope restores CMAKE_FIND_FRAMEWORK.
+    # Imported targets JNI::* remain visible after the function returns.
 
     function(scapix_jni_find_jni)
         set(CMAKE_FIND_FRAMEWORK LAST)
-        find_package(JNI REQUIRED)
-        set(JNI_INCLUDE_DIRS "${JNI_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(JNI_LIBRARIES "${JNI_LIBRARIES}" PARENT_SCOPE)
+        find_package(JNI REQUIRED COMPONENTS JVM)
     endfunction()
 
     scapix_jni_find_jni()
@@ -92,8 +91,7 @@ target_sources(scapix_jni INTERFACE ${java_sources})
 
 if(NOT ANDROID)
 
-    target_include_directories(scapix_jni PUBLIC ${JNI_INCLUDE_DIRS})
-    target_link_libraries(scapix_jni PUBLIC ${JNI_LIBRARIES})
+    target_link_libraries(scapix_jni PUBLIC JNI::JVM)
 
     add_jar(scapix_jni_jar SOURCES ${java_sources} OUTPUT_NAME scapix_jni)
     add_dependencies(scapix_jni scapix_jni_jar)
