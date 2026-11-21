@@ -13,6 +13,13 @@ target_compile_definitions(scapix_jni_tests PRIVATE SCAPIX_JNI_TESTS_JAR_FILE="$
 
 # Catch2 is built with this standard: std::string_view support must match the tests.
 set(CMAKE_CXX_STANDARD 20)
+
+# Catch2 fatal signal handlers (POSIX signals, Windows vectored exception handler)
+# replace/preempt JVM handlers: JVM uses SIGSEGV etc. (access violations on Windows) internally.
+# Takes effect when Catch2 is built from source (cmodule), not for prebuilt Catch2.
+set(CATCH_CONFIG_NO_POSIX_SIGNALS ON)
+set(CATCH_CONFIG_NO_WINDOWS_SEH ON)
+
 find_package(Catch2 REQUIRED)
 target_link_libraries(scapix_jni_tests PRIVATE scapix::jni Catch2::Catch2)
 
