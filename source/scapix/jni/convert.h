@@ -427,7 +427,7 @@ struct convert<Jni, Struct>
 
 		meta::for_each<fields>([&]<typename Field>()
 		{
-			obj.*Field::ptr = convert_cpp<decltype(obj.*Field::ptr)>(value->template get_field<Field::name, typename Field::type>());
+			obj.*Field::ptr = convert_cpp<std::remove_cvref_t<decltype(obj.*Field::ptr)>>(value->template get_field<Field::name, typename Field::type>());
 		});
 
 		return obj;
