@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <map>
 #include <memory>
 #include <set>
@@ -25,6 +26,12 @@ TEST_CASE("convert boxed primitives", "[convert]")
 	CHECK(round_trip<jni::object<"java/lang/Long">>(std::int64_t(1) << 40) == std::int64_t(1) << 40);
 	CHECK(round_trip<jni::object<"java/lang/Float">>(1.5f) == 1.5f);
 	CHECK(round_trip<jni::object<"java/lang/Double">>(2.25) == 2.25);
+}
+
+TEST_CASE("convert primitive keeps negative zero", "[convert]")
+{
+	CHECK(std::signbit(jni::convert_cpp<float>(-0.0f)));
+	CHECK(std::signbit(jni::convert_cpp<double>(-0.0)));
 }
 
 TEST_CASE("convert enum", "[convert]")

@@ -42,10 +42,14 @@ decltype(auto) convert_jni(Cpp&& cpp)
 }
 
 template <typename Cpp, typename Jni>
+	requires type<std::remove_cvref_t<Jni>>
 decltype(auto) convert_cpp(Jni&& jni)
 {
-	if (!jni)
-		return std::remove_cvref_t<Cpp>();
+	// null check only for references: for primitives it is a wasted branch, and loses the sign of -0.0
+
+	if constexpr (is_ref<std::remove_cvref_t<Jni>>)
+		if (!jni)
+			return std::remove_cvref_t<Cpp>();
 
 	return convert<remove_erased_t<std::remove_cvref_t<Jni>>, std::remove_cvref_t<Cpp>>::cpp(std::forward<Jni>(jni));
 }
