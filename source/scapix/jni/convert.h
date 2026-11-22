@@ -15,7 +15,6 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <functional>
 #include <scapix/core/immortal.h>
 #include <scapix/core/meta/for_each.h>
 #include <scapix/jni/ref.h>
