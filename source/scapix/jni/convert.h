@@ -137,11 +137,21 @@ struct convert_string
 		return str;
 	}
 
-	// fix: std::string_view is not null terminated.
+	// NewStringUTF requires null terminated string
 
-	static ref<string> jni(std::string_view str)
+//	static ref<string> jni(std::cstring_view str)
+//	{
+//		return new_object<string>(str);
+//	}
+
+	static ref<string> jni(const char* str)
 	{
-		return new_object<string>(str.data());
+		return new_object<string>(str);
+	}
+
+	static ref<string> jni(const std::string& str)
+	{
+		return jni(str.c_str());
 	}
 };
 
