@@ -270,189 +270,139 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	}
 };
 
+namespace detail {
+
+using java_util_collection = object<"java/util/Collection">;
+using java_util_map = object<"java/util/Map">;
+
+// Non-template JNI loops: one copy in the binary for all element types.
+// Callbacks are captureless lambdas (plain function pointers) with a context pointer.
+
+inline void for_each(ref<java_util_collection> c, void (*f)(void*, ref<>), void* ctx)
+{
+	auto i = c->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
+
+	while (i->call_method<"hasNext", jboolean()>())
+		f(ctx, i->call_method<"next", ref<>()>());
+}
+
+inline void for_each(ref<java_util_map> m, void (*f)(void*, ref<>, ref<>), void* ctx)
+{
+	struct context
+	{
+		void (*f)(void*, ref<>, ref<>);
+		void* ctx;
+	} c{f, ctx};
+
+	for_each(static_pointer_cast<java_util_collection>(m->call_method<"entrySet", ref<object<"java/util/Set">>()>()), [](void* p, ref<> e)
+	{
+		auto& c = *static_cast<context*>(p);
+		auto entry = static_pointer_cast<object<"java/util/Map$Entry">>(e);
+		c.f(c.ctx, entry->call_method<"getKey", ref<>()>(), entry->call_method<"getValue", ref<>()>());
+	}, &c);
+}
+
+inline void add(ref<java_util_collection> c, ref<> e)
+{
+	c->call_method<"add", jboolean(ref<>)>(std::move(e));
+}
+
+inline void put(ref<java_util_map> m, ref<> k, ref<> v)
+{
+	m->call_method<"put", ref<>(ref<>, ref<>)>(std::move(k), std::move(v));
+}
+
+} // namespace detail
+
+// JC: concrete Java class to create, JI: Java type of the converted reference
+
+template <typename JC, typename JI, typename JE, typename Set>
+struct convert_set
+{
+	static Set cpp(ref<JI> c)
+	{
+		Set s;
+
+		detail::for_each(static_pointer_cast<detail::java_util_collection>(c), [](void* p, ref<> e)
+		{
+			auto& s = *static_cast<Set*>(p);
+			s.emplace_hint(s.end(), convert_cpp<typename Set::value_type>(static_pointer_cast<JE>(e)));
+		}, &s);
+
+		return s;
+	}
+
+	static ref<JI> jni(const Set& s)
+	{
+		auto c = new_object<JC, void()>();
+
+		for (auto& e : s)
+			detail::add(static_pointer_cast<detail::java_util_collection>(c), convert_jni<ref<JE>>(e));
+
+		return static_pointer_cast<JI>(std::move(c));
+	}
+};
+
+template <typename JC, typename JI, typename JK, typename JV, typename Map>
+struct convert_map
+{
+	static Map cpp(ref<JI> jm)
+	{
+		Map m;
+
+		detail::for_each(static_pointer_cast<detail::java_util_map>(jm), [](void* p, ref<> k, ref<> v)
+		{
+			auto& m = *static_cast<Map*>(p);
+
+			m.emplace_hint
+			(
+				m.end(),
+				convert_cpp<typename Map::key_type>(static_pointer_cast<JK>(k)),
+				convert_cpp<typename Map::mapped_type>(static_pointer_cast<JV>(v))
+			);
+		}, &m);
+
+		return m;
+	}
+
+	static ref<JI> jni(const Map& m)
+	{
+		auto jm = new_object<JC, void()>();
+
+		for (auto& [k, v] : m)
+			detail::put(static_pointer_cast<detail::java_util_map>(jm), convert_jni<ref<JK>>(k), convert_jni<ref<JV>>(v));
+
+		return static_pointer_cast<JI>(std::move(jm));
+	}
+};
+
+using java_util_map = detail::java_util_map;
 using java_util_treemap = object<"java/util/TreeMap">;
+using java_util_hashmap = object<"java/util/HashMap">;
+using java_util_treeset = object<"java/util/TreeSet">;
+using java_util_hashset = object<"java/util/HashSet">;
 
 template <typename JK, typename JV, typename K, typename V, typename C, typename A>
 struct convert<ref<generic_type<java_util_treemap, JK, JV>>, std::map<K, V, C, A>>
-{
-	static std::map<K, V, C, A> cpp(ref<java_util_treemap> tm)
-	{
-		std::map<K, V, C, A> m;
-
-		auto set = tm->call_method<"entrySet", ref<object<"java/util/Set">>()>();
-		auto i = set->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-		while (i->call_method<"hasNext", jboolean()>())
-		{
-			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
-
-			m.emplace_hint
-			(
-				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
-				convert_cpp<V>(entry->call_method<"getValue", ref<erased<JV>>()>())
-			);
-		}
-
-		return m;
-	}
-
-	static ref<java_util_treemap> jni(const std::map<K, V, C, A>& m)
-	{
-		auto tm = new_object<java_util_treemap, void()>();
-
-		for (auto& i : m)
-			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
-
-		return tm;
-	}
-};
+	: convert_map<java_util_treemap, java_util_treemap, JK, JV, std::map<K, V, C, A>> {};
 
 // currently used only manually, not in generated bindings
 
-using java_util_map = object<"java/util/Map">;
-
 template <typename JK, typename JV, typename K, typename V, typename C, typename A>
 struct convert<ref<generic_type<java_util_map, JK, JV>>, std::map<K, V, C, A>>
-{
-	static std::map<K, V, C, A> cpp(ref<java_util_map> tm)
-	{
-		std::map<K, V, C, A> m;
+	: convert_map<java_util_treemap, java_util_map, JK, JV, std::map<K, V, C, A>> {};
 
-		auto set = tm->call_method<"entrySet", ref<object<"java/util/Set">>()>();
-		auto i = set->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-		while (i->call_method<"hasNext", jboolean()>())
-		{
-			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
-
-			m.emplace_hint
-			(
-				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
-				convert_cpp<V>(entry->call_method<"getValue", ref<erased<JV>>()>())
-			);
-		}
-
-		return m;
-	}
-
-	static ref<java_util_map> jni(const std::map<K, V, C, A>& m)
-	{
-		auto tm = new_object<java_util_treemap, void()>();
-
-		for (auto& i : m)
-			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
-
-		return static_pointer_cast<java_util_map>(std::move(tm));
-	}
-};
-
-using java_util_treeset = object<"java/util/TreeSet">;
+template <typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
+struct convert<ref<generic_type<java_util_hashmap, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
+	: convert_map<java_util_hashmap, java_util_hashmap, JK, JV, std::unordered_map<K, V, H, KE, A>> {};
 
 template <typename JE, typename K, typename C, typename A>
 struct convert<ref<generic_type<java_util_treeset, JE>>, std::set<K, C, A>>
-{
-	static std::set<K, C, A> cpp(ref<java_util_treeset> set)
-	{
-		std::set<K, C, A> m;
-
-		auto i = set->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-		while (i->call_method<"hasNext", jboolean()>())
-		{
-			m.emplace_hint
-			(
-				m.end(),
-				convert_cpp<K>(i->call_method<"next", ref<erased<JE>>()>())
-			);
-		}
-
-		return m;
-	}
-
-	static ref<java_util_treeset> jni(const std::set<K, C, A>& s)
-	{
-		auto set = new_object<java_util_treeset, void()>();
-
-		for (auto& i : s)
-			set->call_method<"add", jboolean(ref<erased<JE>>)>(convert_jni<ref<JE>>(i));
-
-		return set;
-	}
-};
-
-using java_util_hashmap = object<"java/util/HashMap">;
-
-template <typename JK, typename JV, typename K, typename T, typename H, typename KE, typename A>
-struct convert<ref<generic_type<java_util_hashmap, JK, JV>>, std::unordered_map<K, T, H, KE, A>>
-{
-	static std::unordered_map<K, T, H, KE, A> cpp(ref<java_util_hashmap> tm)
-	{
-		std::unordered_map<K, T, H, KE, A> m;
-
-		auto set = tm->call_method<"entrySet", ref<object<"java/util/Set">>()>();
-		auto i = set->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-		while (i->call_method<"hasNext", jboolean()>())
-		{
-			auto entry = i->call_method<"next", ref<erased<object<"java/util/Map$Entry">>>()>();
-
-			m.emplace_hint
-			(
-				m.end(),
-				convert_cpp<K>(entry->call_method<"getKey", ref<erased<JK>>()>()),
-				convert_cpp<T>(entry->call_method<"getValue", ref<erased<JV>>()>())
-			);
-		}
-
-		return m;
-	}
-
-	static ref<java_util_hashmap> jni(const std::unordered_map<K, T, H, KE, A>& m)
-	{
-		auto tm = new_object<java_util_hashmap, void()>();
-
-		for (auto& i : m)
-			tm->call_method<"put", ref<erased<JV>>(ref<erased<JK>>, ref<erased<JV>>)>(convert_jni<ref<JK>>(i.first), convert_jni<ref<JV>>(i.second));
-
-		return tm;
-	}
-};
-
-using java_util_hashset = object<"java/util/HashSet">;
+	: convert_set<java_util_treeset, java_util_treeset, JE, std::set<K, C, A>> {};
 
 template <typename JE, typename K, typename H, typename KE, typename A>
 struct convert<ref<generic_type<java_util_hashset, JE>>, std::unordered_set<K, H, KE, A>>
-{
-	static std::unordered_set<K, H, KE, A> cpp(ref<java_util_hashset> set)
-	{
-		std::unordered_set<K, H, KE, A> m;
-
-		auto i = set->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-		while (i->call_method<"hasNext", jboolean()>())
-		{
-			m.emplace_hint
-			(
-				m.end(),
-				convert_cpp<K>(i->call_method<"next", ref<erased<JE>>()>())
-			);
-		}
-
-		return m;
-	}
-
-	static ref<java_util_hashset> jni(const std::unordered_set<K, H, KE, A>& s)
-	{
-		auto set = new_object<java_util_hashset, void()>();
-
-		for (auto& i : s)
-			set->call_method<"add", jboolean(ref<erased<JE>>)>(convert_jni<ref<JE>>(i));
-
-		return set;
-	}
-};
+	: convert_set<java_util_hashset, java_util_hashset, JE, std::unordered_set<K, H, KE, A>> {};
 
 template <typename Jni, typename Struct>
 	requires is_struct_v<Struct>
