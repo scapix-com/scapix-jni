@@ -8,6 +8,8 @@
 #define SCAPIX_JNI_CONVERT_H
 
 #include <algorithm>
+#include <concepts>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -310,6 +312,22 @@ inline void put(ref<java_util_map> m, ref<> k, ref<> v)
 	m->call_method<"put", ref<>(ref<>, ref<>)>(std::move(k), std::move(v));
 }
 
+// Initial capacity for HashMap/HashSet to hold size elements without rehashing (default load factor 0.75).
+
+inline jint hash_capacity(std::size_t size)
+{
+	return static_cast<jint>((std::min<std::size_t>)((size * 4 + 2) / 3, (std::numeric_limits<jint>::max)()));
+}
+
+template <typename JC>
+ref<JC> new_container(std::size_t size)
+{
+	if constexpr (std::same_as<JC, object<"java/util/HashMap">> || std::same_as<JC, object<"java/util/HashSet">>)
+		return new_object<JC, void(jint)>(hash_capacity(size));
+	else
+		return new_object<JC, void()>();
+}
+
 } // namespace detail
 
 // JC: concrete Java class to create, JI: Java type of the converted reference
@@ -332,7 +350,7 @@ struct convert_set
 
 	static ref<JI> jni(const Set& s)
 	{
-		auto c = new_object<JC, void()>();
+		auto c = detail::new_container<JC>(s.size());
 
 		for (auto& e : s)
 			detail::add(static_pointer_cast<detail::java_util_collection>(c), convert_jni<ref<JE>>(e));
@@ -365,7 +383,7 @@ struct convert_map
 
 	static ref<JI> jni(const Map& m)
 	{
-		auto jm = new_object<JC, void()>();
+		auto jm = detail::new_container<JC>(m.size());
 
 		for (auto& [k, v] : m)
 			detail::put(static_pointer_cast<detail::java_util_map>(jm), convert_jni<ref<JK>>(k), convert_jni<ref<JV>>(v));
