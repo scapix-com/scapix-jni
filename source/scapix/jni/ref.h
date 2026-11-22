@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_REF_H
 #define SCAPIX_JNI_REF_H
 
+#include <concepts>
 #include <utility>
 #include <scapix/core/type_traits.h>
 #include <scapix/jni/type_traits.h>
@@ -59,16 +60,17 @@ std::remove_cvref_t<Cpp> convert_cpp(Jni&& jni)
 	return convert_t<Jni, Cpp>::cpp(std::forward<Jni>(jni));
 }
 
-template<typename Jni, typename Cpp>
-concept has_convert_jni = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+template <typename Jni, typename Cpp>
+concept has_convert_jni = !is_ref<std::remove_cvref_t<Cpp>> && requires (Cpp&& cpp)
 {
-	jni = convert_t<Jni, Cpp>::jni(cpp);
+	{ convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)) };
+	requires std::constructible_from<Jni, decltype(convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)))>;
 };
 
-template<typename Jni, typename Cpp>
-concept has_convert_cpp = !is_ref<std::remove_cvref_t<Cpp>> && requires(Jni jni, Cpp cpp)
+template <typename Jni, typename Cpp>
+concept has_convert_cpp = !is_ref<std::remove_cvref_t<Cpp>> && requires (const Jni& jni)
 {
-	cpp = convert_t<Jni, Cpp>::cpp(jni);
+	{ convert_t<Jni, Cpp>::cpp(jni) } -> std::convertible_to<std::remove_cvref_t<Cpp>>;
 };
 
 /*
