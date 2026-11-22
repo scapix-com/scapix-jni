@@ -31,15 +31,14 @@ namespace scapix::jni {
 template <typename J, typename T>
 struct convert<ref<J>, std::shared_ptr<T>>
 {
+	// null handled by convert_cpp
+
 	static std::shared_ptr<T> cpp(ref<J> value)
 	{
-		if (!value)
-			return nullptr;
-
 		return std::make_shared<T>(convert_cpp<T>(value));
 	}
 
-	static ref<J> jni(std::shared_ptr<T> value)
+	static ref<J> jni(const std::shared_ptr<T>& value)
 	{
 		if (!value)
 			return nullptr;
