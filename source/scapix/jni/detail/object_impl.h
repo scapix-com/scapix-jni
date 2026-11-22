@@ -168,16 +168,31 @@ private:
 	object_impl& operator = (const object_impl&) = delete;
 	object_impl& operator = (object_impl&&) = delete;
 
+	// IDs are cached per JNI signature (not per C++ type),
+	// so e.g. all erased<T> variants of a method share one cache.
+
 	template <fixed_string Name, method Type>
+	static jmethodID method_id() { return method_id<Name, signature_v<Type>>(); }
+
+	template <fixed_string Name, method Type>
+	static jmethodID static_method_id() { return static_method_id<Name, signature_v<Type>>(); }
+
+	template <fixed_string Name, typename Type>
+	static jfieldID field_id() { return field_id<Name, signature_v<Type>>(); }
+
+	template <fixed_string Name, typename Type>
+	static jfieldID static_field_id() { return static_field_id<Name, signature_v<Type>>(); }
+
+	template <fixed_string Name, fixed_string Signature>
 	static jmethodID method_id();
 
-	template <fixed_string Name, method Type>
+	template <fixed_string Name, fixed_string Signature>
 	static jmethodID static_method_id();
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, fixed_string Signature>
 	static jfieldID field_id();
 
-	template <fixed_string Name, typename Type>
+	template <fixed_string Name, fixed_string Signature>
 	static jfieldID static_field_id();
 
 	jobject handle_;
@@ -251,34 +266,34 @@ inline ref<class_> object_impl<ClassName>::class_object()
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, method Type>
+template <fixed_string Name, fixed_string Signature>
 inline jmethodID object_impl<ClassName>::method_id()
 {
-	static const jmethodID id(class_object()->get_method_id(Name, signature_v<Type>));
+	static const jmethodID id(class_object()->get_method_id(Name, Signature));
 	return id;
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, method Type>
+template <fixed_string Name, fixed_string Signature>
 inline jmethodID object_impl<ClassName>::static_method_id()
 {
-	static const jmethodID id(class_object()->get_static_method_id(Name, signature_v<Type>));
+	static const jmethodID id(class_object()->get_static_method_id(Name, Signature));
 	return id;
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, fixed_string Signature>
 inline jfieldID object_impl<ClassName>::field_id()
 {
-	static const jfieldID id(class_object()->get_field_id(Name, signature_v<Type>));
+	static const jfieldID id(class_object()->get_field_id(Name, Signature));
 	return id;
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, typename Type>
+template <fixed_string Name, fixed_string Signature>
 inline jfieldID object_impl<ClassName>::static_field_id()
 {
-	static const jfieldID id(class_object()->get_static_field_id(Name, signature_v<Type>));
+	static const jfieldID id(class_object()->get_static_field_id(Name, Signature));
 	return id;
 }
 
