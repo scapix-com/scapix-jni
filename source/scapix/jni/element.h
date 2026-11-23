@@ -7,8 +7,6 @@
 #ifndef SCAPIX_JNI_ELEMENT_H
 #define SCAPIX_JNI_ELEMENT_H
 
-#include <scapix/jni/fwd/element.h>
-
 namespace scapix::jni {
 
 template <typename T>
@@ -16,6 +14,9 @@ struct element_type
 {
 	using type = T;
 };
+
+template <typename T>
+using element_type_t = typename element_type<T>::type;
 
 } // namespace scapix::jni
 

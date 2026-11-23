@@ -7,7 +7,7 @@
 #ifndef SCAPIX_JNI_OBJECT_TRAITS_H
 #define SCAPIX_JNI_OBJECT_TRAITS_H
 
-#include <scapix/jni/fwd/element.h>
+#include <scapix/jni/element.h>
 
 namespace scapix::jni {
 
