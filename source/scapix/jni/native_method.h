@@ -152,7 +152,7 @@ struct native_method_impl
 		}
 	};
 
-	template <typename JniR, typename ...JniArgs, typename R, compatible_object<object<ClassName>> This, typename ...Args>
+	template <typename JniR, typename ...JniArgs, typename R, same_class_as<object<ClassName>> This, typename ...Args>
 	struct impl<JniR(JniArgs...), R(ref<This>, Args...)>
 	{
 		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
@@ -164,7 +164,7 @@ struct native_method_impl
 		}
 	};
 
-	template <typename JniR, typename ...JniArgs, typename R, compatible_object<class_> Class, typename ...Args>
+	template <typename JniR, typename ...JniArgs, typename R, same_class_as<class_> Class, typename ...Args>
 	struct impl<JniR(JniArgs...), R(ref<Class>, Args...)>
 	{
 		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)

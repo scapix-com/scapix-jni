@@ -272,7 +272,7 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 };
 
 // Java collection types, with base classes used by converters.
-// Converters match any type of the same Java class (compatible_object),
+// Converters match any type of the same Java class (same_class_as),
 // for example object<"java/util/HashMap"> or generated java::util::HashMap.
 
 using java_util_collection = object<"java/util/Collection", java_lang_iterable>;
@@ -296,7 +296,7 @@ inline jint hash_capacity(std::size_t size)
 template <typename JC>
 ref<JC> new_container(std::size_t size)
 {
-	if constexpr (compatible_object<JC, java_util_hashmap> || compatible_object<JC, java_util_hashset>)
+	if constexpr (same_class_as<JC, java_util_hashmap> || same_class_as<JC, java_util_hashset>)
 		return new_object<JC, void(jint)>(hash_capacity(size));
 	else
 		return new_object<JC, void()>();
@@ -368,25 +368,25 @@ struct convert_map
 
 // Specializations match any type of the same Java class, see above.
 
-template <compatible_object<java_util_treemap> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
+template <same_class_as<java_util_treemap> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
 struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_treemap, JK, JV, std::map<K, V, C, A>> {};
 
 // currently used only manually, not in generated bindings
 
-template <compatible_object<java_util_map> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
+template <same_class_as<java_util_map> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
 struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_map, JK, JV, std::map<K, V, C, A>> {};
 
-template <compatible_object<java_util_hashmap> J, typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
+template <same_class_as<java_util_hashmap> J, typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
 struct convert<ref<generic_type<J, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
 	: convert_map<java_util_hashmap, java_util_hashmap, JK, JV, std::unordered_map<K, V, H, KE, A>> {};
 
-template <compatible_object<java_util_treeset> J, typename JE, typename K, typename C, typename A>
+template <same_class_as<java_util_treeset> J, typename JE, typename K, typename C, typename A>
 struct convert<ref<generic_type<J, JE>>, std::set<K, C, A>>
 	: convert_set<java_util_treeset, java_util_treeset, JE, std::set<K, C, A>> {};
 
-template <compatible_object<java_util_hashset> J, typename JE, typename K, typename H, typename KE, typename A>
+template <same_class_as<java_util_hashset> J, typename JE, typename K, typename H, typename KE, typename A>
 struct convert<ref<generic_type<J, JE>>, std::unordered_set<K, H, KE, A>>
 	: convert_set<java_util_hashset, java_util_hashset, JE, std::unordered_set<K, H, KE, A>> {};
 

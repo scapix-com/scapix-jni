@@ -203,10 +203,11 @@ struct is_convertible_object<From, To>
 };
 
 
-// compatible_object
+// same_class_as
+// Same Java class, regardless of C++ type (for example, object<"java/util/HashMap"> and generated java::util::HashMap).
 
 template <typename T1, typename T2>
-concept compatible_object = reference<T1> && reference<T2> && class_name_v<T1> == class_name_v<T2>;
+concept same_class_as = reference<T1> && reference<T2> && class_name_v<T1> == class_name_v<T2>;
 
 // type
 
