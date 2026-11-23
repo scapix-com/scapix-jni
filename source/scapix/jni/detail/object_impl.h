@@ -163,21 +163,21 @@ protected:
 	// Constrained, so they don't exist (instead of failing to compile) for other parameter types.
 
 	template <typename ...Args>
-		requires (param_type<std::remove_cvref_t<Args>> && ...)
+		requires init_method_type<void(std::remove_reference_t<Args>...)>
 	static auto new_object(Args&&... args)
 	{
 		return new_object<void(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
 	}
 
-	template <fixed_string Name, return_type R, typename ...Args>
-		requires (param_type<std::remove_cvref_t<Args>> && ...)
+	template <fixed_string Name, typename R, typename ...Args>
+		requires method_type<R(std::remove_reference_t<Args>...)>
 	auto call_method(Args&&... args) const
 	{
 		return call_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
 	}
 
-	template <fixed_string Name, return_type R, typename ...Args>
-		requires (param_type<std::remove_cvref_t<Args>> && ...)
+	template <fixed_string Name, typename R, typename ...Args>
+		requires method_type<R(std::remove_reference_t<Args>...)>
 	static auto call_static_method(Args&&... args)
 	{
 		return call_static_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
