@@ -203,10 +203,10 @@ private:
 	static jmethodID static_method_id() { return static_method_id<Name, signature_v<Type>>(); }
 
 	template <fixed_string Name, typename Type>
-	static jfieldID field_id() { return field_id<Name, signature_v<Type>>(); }
+	static jfieldID field_id() { return field_id<Name, signature_v<java_type_t<Type>>>(); }
 
 	template <fixed_string Name, typename Type>
-	static jfieldID static_field_id() { return static_field_id<Name, signature_v<Type>>(); }
+	static jfieldID static_field_id() { return static_field_id<Name, signature_v<java_type_t<Type>>>(); }
 
 	template <fixed_string Name, fixed_string Signature>
 	static jmethodID method_id();

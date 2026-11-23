@@ -17,11 +17,18 @@ using scope = detail::api::scope;
 template <typename T = object<>, scope Scope = scope::generic>
 class ref;
 
-template <typename R>
-concept is_ref = requires (R r)
-{
-	[] <typename T, scope Scope> (ref<T, Scope>&) {}(r);
-};
+namespace detail {
+
+template <typename T>
+constexpr bool is_ref = false;
+
+template <typename T, scope Scope>
+constexpr bool is_ref<ref<T, Scope>> = true;
+
+} // namespace detail
+
+template <typename T>
+concept is_ref = detail::is_ref<T>;
 
 } // namespace scapix::jni
 

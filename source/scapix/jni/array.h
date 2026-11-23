@@ -23,7 +23,7 @@
 namespace scapix::jni {
 
 template <array_element T>
-class array_base : public object<signature_v<array<T>>>
+class array_base : public object<class_name_v<array<T>>>
 {
 public:
 

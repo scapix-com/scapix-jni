@@ -25,6 +25,7 @@ namespace scapix::jni {
 template <typename T>
 concept reference = requires
 {
+	requires !is_ref<T>;
 	requires std::is_class_v<element_type_t<T>>;
 	class_name_v<T>;
 	typename base_classes_t<T>;
@@ -219,6 +220,26 @@ concept type = is_ref<T> || primitive<T>;
 
 template <typename T>
 concept return_type = type<T> || std::is_void_v<T>;
+
+// java_type
+//
+// Java type of JNI value type (method parameter, return value or field):
+// ref<T> -> T, primitive -> itself.
+
+template <typename T>
+struct java_type
+{
+	using type = T;
+};
+
+template <typename T, scope Scope>
+struct java_type<ref<T, Scope>>
+{
+	using type = T;
+};
+
+template <typename T>
+using java_type_t = typename java_type<T>::type;
 
 // method
 

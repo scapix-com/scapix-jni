@@ -7,19 +7,42 @@
 #ifndef SCAPIX_JNI_SIGNATURE_H
 #define SCAPIX_JNI_SIGNATURE_H
 
+#include <type_traits>
 #include <scapix/core/fixed_string.h>
-#include <scapix/jni/element.h>
-#include <scapix/jni/generics.h>
-#include <scapix/jni/fwd/ref.h>
-#include <scapix/jni/fwd/array.h>
+#include <scapix/jni/env.h>
+#include <scapix/jni/type_traits.h>
 #include <scapix/jni/fwd/signature.h>
 
 namespace scapix::jni {
 
+// signature
+//
+// JNI type signature (field and method descriptor) of Java type: erased type,
+// not Java generic signature (like "Ljava/util/List<Ljava/lang/String;>;").
+//
+// Defined for Java types only (primitives, object types, arrays), not for JNI value types like ref<T>.
+// Method type R(Args...) uses JNI value types, mapped to Java types by java_type.
+//
+// Reference type: derived from its class name.
+// Array class names are already descriptors (like "[Ljava/lang/String;"), others are wrapped in "L...;".
+
 template <typename T>
 struct signature
 {
+	static_assert(!std::is_same_v<T, T>, "scapix::jni::signature: not a Java type (for ref<T>, use T)");
+	static constexpr fixed_string value = "";
+};
+
+template <reference T>
+struct signature<T>
+{
 	static constexpr auto value = "L" + class_name_v<T> + ";";
+};
+
+template <is_array T>
+struct signature<T>
+{
+	static constexpr auto value = class_name_v<T>;
 };
 
 template<> struct signature<void>     { static constexpr fixed_string value = "V"; };
@@ -32,22 +55,10 @@ template<> struct signature<jlong>    { static constexpr fixed_string value = "J
 template<> struct signature<jfloat>   { static constexpr fixed_string value = "F"; };
 template<> struct signature<jdouble>  { static constexpr fixed_string value = "D"; };
 
-template <typename T, scope Scope>
-struct signature<ref<T, Scope>>
-{
-	static constexpr auto value = signature_v<T>;
-};
-
-template <typename T>
-struct signature<array<T>>
-{
-	static constexpr auto value = "[" + signature_v<T>;
-};
-
 template <typename R, typename ...Args>
 struct signature<R(Args...)>
 {
-	static constexpr auto value = ("(" + ... + signature_v<Args>) + (")" + signature_v<R>);
+	static constexpr auto value = ("(" + ... + signature_v<java_type_t<Args>>) + (")" + signature_v<java_type_t<R>>);
 };
 
 } // namespace scapix::jni
