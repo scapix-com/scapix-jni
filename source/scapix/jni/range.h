@@ -46,13 +46,13 @@ null Iterable or Iterator is an empty range.
 using java_lang_iterable = object<"java/lang/Iterable">;
 using java_util_iterator = object<"java/util/Iterator">;
 
-template <reference E = object<>>
+template <object_type E = object<>>
 class iterable_range;
 
-template <reference E = object<>>
+template <object_type E = object<>>
 class iterator_range;
 
-template <reference E = object<>>
+template <object_type E = object<>>
 class range_iterator
 {
 public:
@@ -111,7 +111,7 @@ private:
 
 // Range over java.lang.Iterable: each begin() creates new Java iterator.
 
-template <reference E>
+template <object_type E>
 class iterable_range
 {
 public:
@@ -135,7 +135,7 @@ private:
 
 // Range over java.util.Iterator: single pass, begin() may only be called once.
 
-template <reference E>
+template <object_type E>
 class iterator_range
 {
 public:
@@ -175,7 +175,7 @@ template <typename E, typename R>
 using range_element_t = std::conditional_t<std::is_void_v<E>, typename range_element<std::remove_cvref_t<R>>::type, E>;
 
 template <typename R, typename J>
-concept ref_to = is_ref<std::remove_cvref_t<R>> && object_convertible_to<typename std::remove_cvref_t<R>::element_type, J>;
+concept ref_to = ref_type<std::remove_cvref_t<R>> && object_convertible_to<typename std::remove_cvref_t<R>::element_type, J>;
 
 } // namespace detail
 

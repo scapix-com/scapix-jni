@@ -21,7 +21,7 @@ namespace scapix::jni {
 // not Java generic signature (like "Ljava/util/List<Ljava/lang/String;>;").
 //
 // Defined for Java types only (primitives, object types, arrays), not for JNI value types like ref<T>.
-// Method type R(Args...) uses JNI value types, mapped to Java types by java_type.
+// Method type R(Args...) uses JNI value types, mapped to Java types by to_java_type.
 //
 // Reference type: derived from its class name.
 // Array class names are already descriptors (like "[Ljava/lang/String;"), others are wrapped in "L...;".
@@ -33,13 +33,13 @@ struct signature
 	static constexpr fixed_string value = "";
 };
 
-template <reference T>
+template <object_type T>
 struct signature<T>
 {
 	static constexpr auto value = "L" + class_name_v<T> + ";";
 };
 
-template <is_array T>
+template <array_type T>
 struct signature<T>
 {
 	static constexpr auto value = class_name_v<T>;
@@ -58,7 +58,7 @@ template<> struct signature<jdouble>  { static constexpr fixed_string value = "D
 template <typename R, typename ...Args>
 struct signature<R(Args...)>
 {
-	static constexpr auto value = ("(" + ... + signature_v<java_type_t<Args>>) + (")" + signature_v<java_type_t<R>>);
+	static constexpr auto value = ("(" + ... + signature_v<to_java_type_t<Args>>) + (")" + signature_v<to_java_type_t<R>>);
 };
 
 } // namespace scapix::jni

@@ -22,7 +22,7 @@
 
 namespace scapix::jni {
 
-template <array_element T>
+template <java_type T>
 class array_base : public object<class_name_v<array<T>>>
 {
 public:
@@ -35,7 +35,7 @@ public:
 
 // object array
 
-template <reference T>
+template <object_type T>
 class array<T> : public array_base<T>
 {
 public:
@@ -209,10 +209,11 @@ template <typename T, lock Lock, release_mode Mode>
 class array_elements : public std::span<T>
 {
 	using span = std::span<T>;
-	using primitive_type = std::remove_const_t<T>;
-	using api = detail::api::array<primitive_type, Lock>;
+	using api = detail::api::array<typename span::value_type, Lock>;
 
 public:
+
+	using value_type = typename span::value_type;
 
 	array_elements(const array_elements&) = delete;
 	array_elements& operator=(const array_elements&) = delete;
@@ -240,9 +241,9 @@ public:
 
 private:
 
-	friend class array<primitive_type>;
+	friend class array<value_type>;
 
-	using handle_type = typename array<primitive_type>::handle_type;
+	using handle_type = typename array<value_type>::handle_type;
 
 	array_elements(handle_type array, jsize size) :
 		span(detail::check_result(api::get_array_elements(array, &is_copy_)), static_cast<std::size_t>(size)),
@@ -252,7 +253,7 @@ private:
 
 	void release_elements(jint mode)
 	{
-		api::release_array_elements(array_, const_cast<primitive_type*>(this->data()), mode);
+		api::release_array_elements(array_, const_cast<value_type*>(this->data()), mode);
 	}
 
 	void reset(release_mode mode)

@@ -17,7 +17,7 @@ namespace scapix::jni {
 // Identity (reference) equality:
 // JNI IsSameObject()
 
-template <reference T>
+template <object_type T>
 struct ref_identity_equal
 {
 	using is_transparent = void;
@@ -33,7 +33,7 @@ struct ref_identity_equal
 // java.lang.System.identityHashCode()
 // non-virtual Object.hashCode()
 
-template <reference T>
+template <object_type T>
 struct ref_identity_hash
 {
 	using is_transparent = void;
@@ -49,7 +49,7 @@ struct ref_identity_hash
 // java.lang.Object.equals()
 // java.util.Objects.equals()
 
-template <reference T>
+template <object_type T>
 struct ref_value_equal
 {
 	using is_transparent = void;
@@ -65,7 +65,7 @@ struct ref_value_equal
 // java.lang.Object.hashCode()
 // java.util.Objects.hashCode()
 
-template <reference T>
+template <object_type T>
 struct ref_value_hash
 {
 	using is_transparent = void;
@@ -115,13 +115,13 @@ struct ref_less
 // You can also specify value (content) equality and hash:
 // std::unordered_map<jni::global_ref<JavaClass>, value_type, jni::ref_value_hash<JavaClass>, jni::ref_value_equal<JavaClass>> map;
 
-template <scapix::jni::reference T, scapix::jni::scope S>
+template <scapix::jni::object_type T, scapix::jni::scope S>
 struct std::equal_to<scapix::jni::ref<T, S>> : scapix::jni::ref_identity_equal<T>
 {
 	using is_transparent = void;
 };
 
-template <scapix::jni::reference T, scapix::jni::scope S>
+template <scapix::jni::object_type T, scapix::jni::scope S>
 struct std::hash<scapix::jni::ref<T, S>> : scapix::jni::ref_identity_hash<T>
 {
 	using is_transparent = void;

@@ -20,12 +20,12 @@
 
 namespace scapix::jni {
 
-// reference
+// object_type
 
 template <typename T>
-concept reference = requires
+concept object_type = requires
 {
-	requires !is_ref<T>;
+	requires !ref_type<T>;
 	requires std::is_class_v<element_type_t<T>>;
 	class_name_v<T>;
 	typename base_classes_t<T>;
@@ -53,7 +53,7 @@ template <typename T>
 concept primitive = numeric<T> || std::same_as<T, jboolean>;
 
 template <typename T>
-concept primitive_or_void = primitive<T> || std::same_as<T, void>;
+concept primitive_return_type = primitive<T> || std::same_as<T, void>;
 
 // java_integral_type
 
@@ -68,24 +68,24 @@ template <> struct java_integral_type_impl<8> { using type = jlong; };
 template <std::integral T>
 using java_integral_type = typename java_integral_type_impl<sizeof(T)>::type;
 
-// array_element
+// java_type
 
 template <typename T>
-concept array_element = reference<T> || primitive<T>;
+concept java_type = object_type<T> || primitive<T>;
 
-// array
-
-template <typename T>
-concept is_array = reference<T> && class_name_v<T>[0] == '[';
+// array_type
 
 template <typename T>
-concept object_array = reference<T> && class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[');
+concept array_type = object_type<T> && class_name_v<T>[0] == '[';
 
 template <typename T>
-concept primitive_array = reference<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[';
+concept object_array = object_type<T> && class_name_v<T>[0] == '[' && (class_name_v<T>[1] == 'L' || class_name_v<T>[1] == '[');
 
 template <typename T>
-concept numeric_array = reference<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[' && class_name_v<T>[1] != 'Z';
+concept primitive_array = object_type<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[';
+
+template <typename T>
+concept numeric_array = object_type<T> && class_name_v<T>[0] == '[' && class_name_v<T>[1] != 'L' && class_name_v<T>[1] != '[' && class_name_v<T>[1] != 'Z';
 
 // handle_type
 
@@ -115,7 +115,7 @@ using handle_types = std::tuple
 	handle_type_info<"[", jobjectArray> // uses "begins_with" compare, must be last
 >;
 
-template <reference T>
+template <object_type T>
 constexpr std::size_t handle_type()
 {
 	auto class_name = class_name_v<T>;
@@ -146,7 +146,7 @@ constexpr std::size_t handle_type()
 
 } // namespace detail
 
-template <reference T>
+template <object_type T>
 using handle_type_t = typename std::tuple_element_t<detail::handle_type<T>(), detail::handle_types>::handle_type;
 
 // remove_erased
@@ -177,16 +177,16 @@ struct remove_erased<ref<T, Scope>>
 
 // is_convertible_object
 
-template <reference From, reference To>
+template <object_type From, object_type To>
 struct is_convertible_object;
 
-template <reference From, reference To>
+template <object_type From, object_type To>
 constexpr bool is_convertible_object_v = is_convertible_object<From, To>::value;
 
 template <typename From, typename To>
 concept object_convertible_to = is_convertible_object_v<From, To>;
 
-template <reference From, reference To>
+template <object_type From, object_type To>
 struct is_convertible_object
 {
 	template <typename T>
@@ -209,37 +209,37 @@ struct is_convertible_object<From, To>
 // Same Java class, regardless of C++ type (for example, object<"java/util/HashMap"> and generated java::util::HashMap).
 
 template <typename T1, typename T2>
-concept same_class_as = reference<T1> && reference<T2> && class_name_v<T1> == class_name_v<T2>;
+concept same_class_as = object_type<T1> && object_type<T2> && class_name_v<T1> == class_name_v<T2>;
 
-// type
+// param_type
 
 template <typename T>
-concept type = is_ref<T> || primitive<T>;
+concept param_type = ref_type<T> || primitive<T>;
 
 // return_type
 
 template <typename T>
-concept return_type = type<T> || std::is_void_v<T>;
+concept return_type = param_type<T> || std::is_void_v<T>;
 
-// java_type
+// to_java_type
 //
 // Java type of JNI value type (method parameter, return value or field):
 // ref<T> -> T, primitive -> itself.
 
 template <typename T>
-struct java_type
+struct to_java_type
 {
 	using type = T;
 };
 
 template <typename T, scope Scope>
-struct java_type<ref<T, Scope>>
+struct to_java_type<ref<T, Scope>>
 {
 	using type = T;
 };
 
 template <typename T>
-using java_type_t = typename java_type<T>::type;
+using to_java_type_t = typename to_java_type<T>::type;
 
 // method_type
 
@@ -249,7 +249,7 @@ template <typename F>
 constexpr bool is_method_type = false;
 
 template <typename R, typename ...Args>
-constexpr bool is_method_type<R(Args...)> = return_type<R> && (type<Args> && ...);
+constexpr bool is_method_type<R(Args...)> = return_type<R> && (param_type<Args> && ...);
 
 template <typename R, typename ...Args>
 constexpr bool is_method_type<R(Args...) noexcept> = is_method_type<R(Args...)>;
@@ -267,7 +267,7 @@ template <typename F>
 constexpr bool is_init_method_type = false;
 
 template <typename ...Args>
-constexpr bool is_init_method_type<void(Args...)> = (type<Args> && ...);
+constexpr bool is_init_method_type<void(Args...)> = (param_type<Args> && ...);
 
 template <typename ...Args>
 constexpr bool is_init_method_type<void(Args...) noexcept> = is_init_method_type<void(Args...)>;
@@ -285,7 +285,7 @@ template <typename F>
 constexpr bool is_android_critical_native_method_type = false;
 
 template <typename R, typename ...Args>
-constexpr bool is_android_critical_native_method_type<R(Args...)> = primitive_or_void<R> && (primitive<Args> && ...);
+constexpr bool is_android_critical_native_method_type<R(Args...)> = primitive_return_type<R> && (primitive<Args> && ...);
 
 template <typename R, typename ...Args>
 constexpr bool is_android_critical_native_method_type<R(Args...) noexcept> = is_android_critical_native_method_type<R(Args...)>;

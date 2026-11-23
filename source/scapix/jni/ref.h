@@ -48,12 +48,12 @@ decltype(auto) convert_jni(Cpp&& cpp)
 }
 
 template <typename Cpp, typename Jni>
-	requires type<std::remove_cvref_t<Jni>>
+	requires param_type<std::remove_cvref_t<Jni>>
 std::remove_cvref_t<Cpp> convert_cpp(Jni&& jni)
 {
 	// null check only for references: for primitives it is a wasted branch, and loses the sign of -0.0
 
-	if constexpr (is_ref<std::remove_cvref_t<Jni>>)
+	if constexpr (ref_type<std::remove_cvref_t<Jni>>)
 		if (!jni)
 			return {};
 
@@ -61,14 +61,14 @@ std::remove_cvref_t<Cpp> convert_cpp(Jni&& jni)
 }
 
 template <typename Jni, typename Cpp>
-concept has_convert_jni = !is_ref<std::remove_cvref_t<Cpp>> && requires (Cpp&& cpp)
+concept has_convert_jni = !ref_type<std::remove_cvref_t<Cpp>> && requires (Cpp&& cpp)
 {
 	{ convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)) };
 	requires std::constructible_from<Jni, decltype(convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)))>;
 };
 
 template <typename Jni, typename Cpp>
-concept has_convert_cpp = !is_ref<std::remove_cvref_t<Cpp>> && requires (const Jni& jni)
+concept has_convert_cpp = !ref_type<std::remove_cvref_t<Cpp>> && requires (const Jni& jni)
 {
 	{ convert_t<Jni, Cpp>::cpp(jni) } -> std::convertible_to<std::remove_cvref_t<Cpp>>;
 };

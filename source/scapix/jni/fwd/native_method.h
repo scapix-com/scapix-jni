@@ -21,13 +21,13 @@ namespace detail {
 template <typename T>
 struct deduce_signature;
 
-template <class_type Class, return_type R, type... Args>
+template <class_type Class, return_type R, param_type... Args>
 struct deduce_signature<R(Class::*)(Args...)>
 {
 	using type = R(Args...);
 };
 
-template <return_type R, reference T, type... Args>
+template <return_type R, object_type T, param_type... Args>
 struct deduce_signature<R(ref<T>, Args...)>
 {
 	using type = R(Args...);
@@ -39,14 +39,14 @@ struct prepend_ref_impl {};
 template <typename R, typename... Args>
 struct prepend_ref_impl<R(Args...)>
 {
-	template <reference T>
+	template <object_type T>
 	using type = R(ref<T>, Args...);
 };
 
 template <typename R, typename... Args>
 struct prepend_ref_impl<R(Args...) noexcept>
 {
-	template <reference T>
+	template <object_type T>
 	using type = R(ref<T>, Args...) noexcept;
 };
 
@@ -94,7 +94,7 @@ constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 
 // Both types specified - use CppType to select overload.
 
-template <method_type JniType, function_type CppType, reference T>
+template <method_type JniType, function_type CppType, object_type T>
 constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<CppType, T>* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
@@ -108,7 +108,7 @@ constexpr auto native_method(compile_time_string auto&& name, std::type_identity
 
 // Only JniType specified - use JniType to select overload.
 
-template <method_type JniType, reference T>
+template <method_type JniType, object_type T>
 constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<JniType, T>* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);

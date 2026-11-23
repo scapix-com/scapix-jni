@@ -28,7 +28,7 @@ constexpr bool is_ref<ref<T, Scope>> = true;
 } // namespace detail
 
 template <typename T>
-concept is_ref = detail::is_ref<T>;
+concept ref_type = detail::is_ref<T>;
 
 } // namespace scapix::jni
 

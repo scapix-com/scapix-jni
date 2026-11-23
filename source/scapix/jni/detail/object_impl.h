@@ -163,21 +163,21 @@ protected:
 	// Constrained, so they don't exist (instead of failing to compile) for other parameter types.
 
 	template <typename ...Args>
-		requires (type<std::remove_cvref_t<Args>> && ...)
+		requires (param_type<std::remove_cvref_t<Args>> && ...)
 	static auto new_object(Args&&... args)
 	{
 		return new_object<void(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
 	}
 
 	template <fixed_string Name, return_type R, typename ...Args>
-		requires (type<std::remove_cvref_t<Args>> && ...)
+		requires (param_type<std::remove_cvref_t<Args>> && ...)
 	auto call_method(Args&&... args) const
 	{
 		return call_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
 	}
 
 	template <fixed_string Name, return_type R, typename ...Args>
-		requires (type<std::remove_cvref_t<Args>> && ...)
+		requires (param_type<std::remove_cvref_t<Args>> && ...)
 	static auto call_static_method(Args&&... args)
 	{
 		return call_static_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
@@ -203,10 +203,10 @@ private:
 	static jmethodID static_method_id() { return static_method_id<Name, signature_v<Type>>(); }
 
 	template <fixed_string Name, typename Type>
-	static jfieldID field_id() { return field_id<Name, signature_v<java_type_t<Type>>>(); }
+	static jfieldID field_id() { return field_id<Name, signature_v<to_java_type_t<Type>>>(); }
 
 	template <fixed_string Name, typename Type>
-	static jfieldID static_field_id() { return static_field_id<Name, signature_v<java_type_t<Type>>>(); }
+	static jfieldID static_field_id() { return static_field_id<Name, signature_v<to_java_type_t<Type>>>(); }
 
 	template <fixed_string Name, fixed_string Signature>
 	static jmethodID method_id();

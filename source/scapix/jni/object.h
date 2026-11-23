@@ -18,16 +18,16 @@ namespace scapix::jni {
 // raw_object
 // Same Java class as T, with low level interface of object<>.
 
-template <reference T>
+template <object_type T>
 using raw_object = object<class_name_v<T>>;
 
-template <reference T, scope Scope>
+template <object_type T, scope Scope>
 ref<raw_object<T>> raw(const ref<T, Scope>& r)
 {
 	return r;
 }
 
-template <reference T, scope Scope>
+template <object_type T, scope Scope>
 ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
 {
 	return std::move(r);
@@ -35,13 +35,13 @@ ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
 
 // new_object
 
-template <reference T, init_method_type Type, typename ...Args>
+template <object_type T, init_method_type Type, typename ...Args>
 ref<T> new_object(Args&&... args)
 {
 	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);
 }
 
-template <reference T, typename ...Args>
+template <object_type T, typename ...Args>
 ref<T> new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
 {
 	return element_type_t<T>::new_object(std::forward<Args>(args)...);
@@ -76,7 +76,7 @@ public:
 	using impl::to_reflected_static_field;
 	using impl::class_object;
 
-	template <reference T>
+	template <object_type T>
 	[[nodiscard]] bool is_instance_of() const
 	{
 		return is_instance_of(raw_object<T>::class_object());
@@ -87,7 +87,7 @@ public:
 		return detail::env()->IsInstanceOf(handle(), cls.handle());
 	}
 
-	template <reference T>
+	template <object_type T>
 	[[nodiscard]] ref<T> instance_of() const
 	{
 		if (is_instance_of<T>())

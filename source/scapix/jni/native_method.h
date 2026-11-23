@@ -53,22 +53,22 @@ struct param<ref<T>, Cpp>
 };
 
 template <typename Jni>
-struct param_t;
+struct native_param_t;
 
-template <primitive_or_void Jni>
-struct param_t<Jni>
+template <primitive_return_type Jni>
+struct native_param_t<Jni>
 {
 	using type = Jni;
 };
 
 template <typename T>
-struct param_t<ref<T>>
+struct native_param_t<ref<T>>
 {
 	using type = jobject;
 };
 
 template <typename T>
-using param_type = typename param_t<T>::type;
+using native_param_type = typename native_param_t<T>::type;
 
 template <function_pointer Func>
 struct jni_native_method
@@ -93,7 +93,7 @@ jni_native_method(const char*, const char*, Func) -> jni_native_method<Func>;
 // native_method_impl
 
 template <typename JniR, typename R, typename F>
-param_type<JniR> invoke(JNIEnv* env, F&& f)
+native_param_type<JniR> invoke(JNIEnv* env, F&& f)
 {
 	detail::env_.ptr = env;
 
@@ -130,7 +130,7 @@ struct native_method_impl
 	template <typename JniR, typename ...JniArgs, typename R, typename ...Args, typename Class>
 	struct impl<JniR(JniArgs...), R(Class::*)(Args...)>
 	{
-		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
+		static native_param_type<JniR> func(JNIEnv* env, jobject thiz, native_param_type<JniArgs>... args)
 		{
 			return invoke<JniR, R>(env, [&]
 			{
@@ -143,7 +143,7 @@ struct native_method_impl
 	template <typename JniR, typename ...JniArgs, typename R, typename ...Args>
 	struct impl<JniR(JniArgs...), R(Args...)>
 	{
-		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)
+		static native_param_type<JniR> func(JNIEnv* env, jclass clazz, native_param_type<JniArgs>... args)
 		{
 			return invoke<JniR, R>(env, [&]
 			{
@@ -155,7 +155,7 @@ struct native_method_impl
 	template <typename JniR, typename ...JniArgs, typename R, same_class_as<object<ClassName>> This, typename ...Args>
 	struct impl<JniR(JniArgs...), R(ref<This>, Args...)>
 	{
-		static param_type<JniR> func(JNIEnv* env, jobject thiz, param_type<JniArgs>... args)
+		static native_param_type<JniR> func(JNIEnv* env, jobject thiz, native_param_type<JniArgs>... args)
 		{
 			return invoke<JniR, R>(env, [&]
 			{
@@ -167,7 +167,7 @@ struct native_method_impl
 	template <typename JniR, typename ...JniArgs, typename R, same_class_as<class_> Class, typename ...Args>
 	struct impl<JniR(JniArgs...), R(ref<Class>, Args...)>
 	{
-		static param_type<JniR> func(JNIEnv* env, jclass clazz, param_type<JniArgs>... args)
+		static native_param_type<JniR> func(JNIEnv* env, jclass clazz, native_param_type<JniArgs>... args)
 		{
 			return invoke<JniR, R>(env, [&]
 			{

@@ -246,7 +246,7 @@ struct convert<ref<array<jboolean>>, std::vector<bool, A>>
 	}
 };
 
-template <reference J, typename T, typename A>
+template <object_type J, typename T, typename A>
 struct convert<ref<array<J>>, std::vector<T, A>>
 {
 	static std::vector<T, A> cpp(ref<array<J>> a)
