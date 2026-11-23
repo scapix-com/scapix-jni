@@ -19,11 +19,6 @@
 
 namespace scapix::jni {
 
-// object_type
-
-template <typename T>
-concept object_type = !ref_type<T> && std::is_class_v<element_type_t<T>> && requires { class_name_v<T>; typename base_classes_t<T>; };
-
 // primitive
 
 template <typename T>
