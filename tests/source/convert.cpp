@@ -94,3 +94,35 @@ TEST_CASE("convert std::unordered_set", "[convert]")
 	auto j = jni::convert_jni<jni::ref<set>>(s);
 	CHECK(jni::convert_cpp<std::unordered_set<int>>(jni::ref<set>(j)) == s);
 }
+
+TEST_CASE("convert collections: any type of the same Java class", "[convert]")
+{
+	// Raw types without base classes, as spelled by generated bindings.
+
+	SECTION("java.util.HashMap")
+	{
+		using map = jni::generic_type<jni::object<"java/util/HashMap">, jni::string, jni::string>;
+		const std::unordered_map<std::string, std::string> m{ { "k1", "v1" }, { "k2", "v2" } };
+		jni::ref<map> j = m;
+		std::unordered_map<std::string, std::string> r = j;
+		CHECK(r == m);
+	}
+
+	SECTION("java.util.TreeSet")
+	{
+		using set = jni::generic_type<jni::object<"java/util/TreeSet">, jni::string>;
+		const std::set<std::string> s{ "b", "a" };
+		jni::ref<set> j = s;
+		std::set<std::string> r = j;
+		CHECK(r == s);
+	}
+
+	SECTION("java.util.Map")
+	{
+		using map = jni::generic_type<jni::object<"java/util/Map">, jni::string, jni::object<"java/lang/Integer">>;
+		const std::map<std::string, int> m{ { "one", 1 } };
+		jni::ref<map> j = m;
+		std::map<std::string, int> r = j;
+		CHECK(r == m);
+	}
+}

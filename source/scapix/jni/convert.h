@@ -271,12 +271,20 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	}
 };
 
-namespace detail {
+// Java collection types, with base classes used by converters.
+// Converters match any type of the same Java class (compatible_object),
+// for example object<"java/util/HashMap"> or generated java::util::HashMap.
 
 using java_util_collection = object<"java/util/Collection", java_lang_iterable>;
-using java_util_set = object<"java/util/Set", java_lang_iterable>;
+using java_util_set = object<"java/util/Set", java_util_collection>;
 using java_util_map = object<"java/util/Map">;
 using java_util_map_entry = object<"java/util/Map$Entry">;
+using java_util_treemap = object<"java/util/TreeMap", java_util_map>;
+using java_util_hashmap = object<"java/util/HashMap", java_util_map>;
+using java_util_treeset = object<"java/util/TreeSet", java_util_set>;
+using java_util_hashset = object<"java/util/HashSet", java_util_set>;
+
+namespace detail {
 
 // Initial capacity for HashMap/HashSet to hold size elements without rehashing (default load factor 0.75).
 
@@ -288,7 +296,7 @@ inline jint hash_capacity(std::size_t size)
 template <typename JC>
 ref<JC> new_container(std::size_t size)
 {
-	if constexpr (std::same_as<JC, object<"java/util/HashMap">> || std::same_as<JC, object<"java/util/HashSet">>)
+	if constexpr (compatible_object<JC, java_util_hashmap> || compatible_object<JC, java_util_hashset>)
 		return new_object<JC, void(jint)>(hash_capacity(size));
 	else
 		return new_object<JC, void()>();
@@ -296,7 +304,7 @@ ref<JC> new_container(std::size_t size)
 
 } // namespace detail
 
-// JC: concrete Java class to create, JI: Java type of the converted reference
+// JC: concrete Java class to create, JI: Java type of the converted reference (both with base classes)
 
 template <typename JC, typename JI, typename JE, typename Set>
 struct convert_set
@@ -305,7 +313,7 @@ struct convert_set
 	{
 		Set s;
 
-		for (ref<JE> e : range<JE>(static_pointer_cast<detail::java_util_collection>(c)))
+		for (ref<JE> e : range<JE>(c))
 			s.emplace_hint(s.end(), convert_cpp<typename Set::value_type>(e));
 
 		return s;
@@ -314,12 +322,12 @@ struct convert_set
 	static ref<JI> jni(const Set& s)
 	{
 		auto c = detail::new_container<JC>(s.size());
-		ref<detail::java_util_collection> collection = static_pointer_cast<detail::java_util_collection>(c);
+		ref<java_util_collection> collection = c;
 
 		for (auto& e : s)
 			collection->call_method<"add", jboolean(ref<>)>(convert_jni<ref<JE>>(e));
 
-		return static_pointer_cast<JI>(std::move(c));
+		return std::move(c);
 	}
 };
 
@@ -329,11 +337,11 @@ struct convert_map
 	static Map cpp(ref<JI> jm)
 	{
 		Map m;
-		ref<detail::java_util_map> map = static_pointer_cast<detail::java_util_map>(jm);
+		ref<java_util_map> map = jm;
 
-		for (ref<> e : range(map->call_method<"entrySet", ref<detail::java_util_set>()>()))
+		for (ref<> e : range(map->call_method<"entrySet", ref<java_util_set>()>()))
 		{
-			auto entry = static_pointer_cast<detail::java_util_map_entry>(e);
+			auto entry = static_pointer_cast<java_util_map_entry>(e);
 
 			m.emplace_hint
 			(
@@ -349,41 +357,37 @@ struct convert_map
 	static ref<JI> jni(const Map& m)
 	{
 		auto jm = detail::new_container<JC>(m.size());
-		ref<detail::java_util_map> map = static_pointer_cast<detail::java_util_map>(jm);
+		ref<java_util_map> map = jm;
 
 		for (auto& [k, v] : m)
 			map->call_method<"put", ref<>(ref<>, ref<>)>(convert_jni<ref<JK>>(k), convert_jni<ref<JV>>(v));
 
-		return static_pointer_cast<JI>(std::move(jm));
+		return std::move(jm);
 	}
 };
 
-using java_util_map = detail::java_util_map;
-using java_util_treemap = object<"java/util/TreeMap">;
-using java_util_hashmap = object<"java/util/HashMap">;
-using java_util_treeset = object<"java/util/TreeSet">;
-using java_util_hashset = object<"java/util/HashSet">;
+// Specializations match any type of the same Java class, see above.
 
-template <typename JK, typename JV, typename K, typename V, typename C, typename A>
-struct convert<ref<generic_type<java_util_treemap, JK, JV>>, std::map<K, V, C, A>>
+template <compatible_object<java_util_treemap> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
+struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_treemap, JK, JV, std::map<K, V, C, A>> {};
 
 // currently used only manually, not in generated bindings
 
-template <typename JK, typename JV, typename K, typename V, typename C, typename A>
-struct convert<ref<generic_type<java_util_map, JK, JV>>, std::map<K, V, C, A>>
+template <compatible_object<java_util_map> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
+struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_map, JK, JV, std::map<K, V, C, A>> {};
 
-template <typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
-struct convert<ref<generic_type<java_util_hashmap, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
+template <compatible_object<java_util_hashmap> J, typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
+struct convert<ref<generic_type<J, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
 	: convert_map<java_util_hashmap, java_util_hashmap, JK, JV, std::unordered_map<K, V, H, KE, A>> {};
 
-template <typename JE, typename K, typename C, typename A>
-struct convert<ref<generic_type<java_util_treeset, JE>>, std::set<K, C, A>>
+template <compatible_object<java_util_treeset> J, typename JE, typename K, typename C, typename A>
+struct convert<ref<generic_type<J, JE>>, std::set<K, C, A>>
 	: convert_set<java_util_treeset, java_util_treeset, JE, std::set<K, C, A>> {};
 
-template <typename JE, typename K, typename H, typename KE, typename A>
-struct convert<ref<generic_type<java_util_hashset, JE>>, std::unordered_set<K, H, KE, A>>
+template <compatible_object<java_util_hashset> J, typename JE, typename K, typename H, typename KE, typename A>
+struct convert<ref<generic_type<J, JE>>, std::unordered_set<K, H, KE, A>>
 	: convert_set<java_util_hashset, java_util_hashset, JE, std::unordered_set<K, H, KE, A>> {};
 
 template <typename Jni, typename Struct>
