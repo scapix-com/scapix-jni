@@ -44,12 +44,6 @@ struct signature<array<T>>
 	static constexpr auto value = "[" + signature_v<T>;
 };
 
-template <typename T>
-struct signature<T[]>
-{
-	static constexpr auto value = signature_v<array<T>>;
-};
-
 template <typename T, typename Erasure>
 struct signature<erased<T, Erasure>>
 {
