@@ -274,35 +274,9 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 namespace detail {
 
 using java_util_collection = object<"java/util/Collection", java_lang_iterable>;
+using java_util_set = object<"java/util/Set", java_lang_iterable>;
 using java_util_map = object<"java/util/Map">;
-
-// Non-template JNI loops: one copy in the binary for all element types.
-// Callbacks are captureless lambdas (plain function pointers) with a context pointer.
-
-inline void for_each(ref<java_util_collection> c, void (*f)(void*, ref<>), void* ctx)
-{
-	for (ref<> e : range(c))
-		f(ctx, e);
-}
-
-inline void for_each(ref<java_util_map> m, void (*f)(void*, ref<>, ref<>), void* ctx)
-{
-	for (ref<> e : range(m->call_method<"entrySet", ref<object<"java/util/Set", java_lang_iterable>>()>()))
-	{
-		auto entry = static_pointer_cast<object<"java/util/Map$Entry">>(e);
-		f(ctx, entry->call_method<"getKey", ref<>()>(), entry->call_method<"getValue", ref<>()>());
-	}
-}
-
-inline void add(ref<java_util_collection> c, ref<> e)
-{
-	c->call_method<"add", jboolean(ref<>)>(std::move(e));
-}
-
-inline void put(ref<java_util_map> m, ref<> k, ref<> v)
-{
-	m->call_method<"put", ref<>(ref<>, ref<>)>(std::move(k), std::move(v));
-}
+using java_util_map_entry = object<"java/util/Map$Entry">;
 
 // Initial capacity for HashMap/HashSet to hold size elements without rehashing (default load factor 0.75).
 
@@ -331,11 +305,8 @@ struct convert_set
 	{
 		Set s;
 
-		detail::for_each(static_pointer_cast<detail::java_util_collection>(c), [](void* p, ref<> e)
-		{
-			auto& s = *static_cast<Set*>(p);
-			s.emplace_hint(s.end(), convert_cpp<typename Set::value_type>(static_pointer_cast<JE>(e)));
-		}, &s);
+		for (ref<JE> e : range<JE>(static_pointer_cast<detail::java_util_collection>(c)))
+			s.emplace_hint(s.end(), convert_cpp<typename Set::value_type>(e));
 
 		return s;
 	}
@@ -343,9 +314,10 @@ struct convert_set
 	static ref<JI> jni(const Set& s)
 	{
 		auto c = detail::new_container<JC>(s.size());
+		ref<detail::java_util_collection> collection = static_pointer_cast<detail::java_util_collection>(c);
 
 		for (auto& e : s)
-			detail::add(static_pointer_cast<detail::java_util_collection>(c), convert_jni<ref<JE>>(e));
+			collection->call_method<"add", jboolean(ref<>)>(convert_jni<ref<JE>>(e));
 
 		return static_pointer_cast<JI>(std::move(c));
 	}
@@ -357,18 +329,19 @@ struct convert_map
 	static Map cpp(ref<JI> jm)
 	{
 		Map m;
+		ref<detail::java_util_map> map = static_pointer_cast<detail::java_util_map>(jm);
 
-		detail::for_each(static_pointer_cast<detail::java_util_map>(jm), [](void* p, ref<> k, ref<> v)
+		for (ref<> e : range(map->call_method<"entrySet", ref<detail::java_util_set>()>()))
 		{
-			auto& m = *static_cast<Map*>(p);
+			auto entry = static_pointer_cast<detail::java_util_map_entry>(e);
 
 			m.emplace_hint
 			(
 				m.end(),
-				convert_cpp<typename Map::key_type>(static_pointer_cast<JK>(k)),
-				convert_cpp<typename Map::mapped_type>(static_pointer_cast<JV>(v))
+				convert_cpp<typename Map::key_type>(static_pointer_cast<JK>(entry->call_method<"getKey", ref<>()>())),
+				convert_cpp<typename Map::mapped_type>(static_pointer_cast<JV>(entry->call_method<"getValue", ref<>()>()))
 			);
-		}, &m);
+		}
 
 		return m;
 	}
@@ -376,9 +349,10 @@ struct convert_map
 	static ref<JI> jni(const Map& m)
 	{
 		auto jm = detail::new_container<JC>(m.size());
+		ref<detail::java_util_map> map = static_pointer_cast<detail::java_util_map>(jm);
 
 		for (auto& [k, v] : m)
-			detail::put(static_pointer_cast<detail::java_util_map>(jm), convert_jni<ref<JK>>(k), convert_jni<ref<JV>>(v));
+			map->call_method<"put", ref<>(ref<>, ref<>)>(convert_jni<ref<JK>>(k), convert_jni<ref<JV>>(v));
 
 		return static_pointer_cast<JI>(std::move(jm));
 	}
