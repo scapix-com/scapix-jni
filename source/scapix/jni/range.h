@@ -14,7 +14,7 @@
 #include <scapix/jni/object.h>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/cast.h>
-#include <scapix/jni/element.h>
+#include <scapix/jni/generics.h>
 
 namespace scapix::jni {
 
@@ -32,7 +32,7 @@ Java type must be known statically: object type must be (or declare as base clas
 java.lang.Iterable or java.util.Iterator. For raw types (like object<"java/util/ArrayList">),
 declare base class, or use static_pointer_cast<java_lang_iterable>().
 
-Element type E defaults to the first type parameter of generic_type<T, E, ...>, otherwise object<>.
+Element type E defaults to the first type parameter of parameterized<Object, E, ...>, otherwise object<>.
 Elements are cast to E without a check (Java generics are erased).
 
 Dereferencing the iterator returns a non-owning ref<E>, valid until the iterator is incremented:
@@ -165,8 +165,8 @@ struct range_element
 	using type = object<>;
 };
 
-template <typename T, typename E, typename ...Params, scope Scope>
-struct range_element<ref<generic_type<T, E, Params...>, Scope>>
+template <typename Object, typename E, typename ...Params, scope Scope>
+struct range_element<ref<parameterized<Object, E, Params...>, Scope>>
 {
 	using type = E;
 };

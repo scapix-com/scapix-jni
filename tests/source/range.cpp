@@ -99,9 +99,9 @@ TEST_CASE("range: elements convert to C++ types", "[range]")
 	CHECK(v == std::vector<std::string>{ "one", "two" });
 }
 
-TEST_CASE("range: element type deduced from generic_type", "[range]")
+TEST_CASE("range: element type deduced from parameterized", "[range]")
 {
-	using string_list = jni::generic_type<array_list, jni::string>;
+	using string_list = jni::parameterized<array_list, jni::string>;
 
 	auto list = jni::static_pointer_cast<string_list>(make_list({ "g" }));
 	auto r = jni::range(list);

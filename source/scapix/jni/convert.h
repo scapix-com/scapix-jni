@@ -26,6 +26,7 @@
 #include <scapix/jni/struct.h>
 #include <scapix/jni/cast.h>
 #include <scapix/jni/range.h>
+#include <scapix/jni/generics.h>
 #include <scapix/jni/bridge/function.h>
 
 namespace scapix::jni {
@@ -369,25 +370,25 @@ struct convert_map
 // Specializations match any type of the same Java class, see above.
 
 template <same_class_as<java_util_treemap> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
-struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
+struct convert<ref<parameterized<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_treemap, JK, JV, std::map<K, V, C, A>> {};
 
 // currently used only manually, not in generated bindings
 
 template <same_class_as<java_util_map> J, typename JK, typename JV, typename K, typename V, typename C, typename A>
-struct convert<ref<generic_type<J, JK, JV>>, std::map<K, V, C, A>>
+struct convert<ref<parameterized<J, JK, JV>>, std::map<K, V, C, A>>
 	: convert_map<java_util_treemap, java_util_map, JK, JV, std::map<K, V, C, A>> {};
 
 template <same_class_as<java_util_hashmap> J, typename JK, typename JV, typename K, typename V, typename H, typename KE, typename A>
-struct convert<ref<generic_type<J, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
+struct convert<ref<parameterized<J, JK, JV>>, std::unordered_map<K, V, H, KE, A>>
 	: convert_map<java_util_hashmap, java_util_hashmap, JK, JV, std::unordered_map<K, V, H, KE, A>> {};
 
 template <same_class_as<java_util_treeset> J, typename JE, typename K, typename C, typename A>
-struct convert<ref<generic_type<J, JE>>, std::set<K, C, A>>
+struct convert<ref<parameterized<J, JE>>, std::set<K, C, A>>
 	: convert_set<java_util_treeset, java_util_treeset, JE, std::set<K, C, A>> {};
 
 template <same_class_as<java_util_hashset> J, typename JE, typename K, typename H, typename KE, typename A>
-struct convert<ref<generic_type<J, JE>>, std::unordered_set<K, H, KE, A>>
+struct convert<ref<parameterized<J, JE>>, std::unordered_set<K, H, KE, A>>
 	: convert_set<java_util_hashset, java_util_hashset, JE, std::unordered_set<K, H, KE, A>> {};
 
 template <typename Jni, typename Struct>

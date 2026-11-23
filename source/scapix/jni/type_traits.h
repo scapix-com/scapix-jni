@@ -15,6 +15,7 @@
 #include <scapix/jni/env.h>
 #include <scapix/jni/object_traits.h>
 #include <scapix/jni/element.h>
+#include <scapix/jni/generics.h>
 #include <scapix/jni/fwd/ref.h>
 
 namespace scapix::jni {

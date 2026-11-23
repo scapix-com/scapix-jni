@@ -9,6 +9,7 @@
 
 #include <scapix/core/fixed_string.h>
 #include <scapix/jni/element.h>
+#include <scapix/jni/generics.h>
 #include <scapix/jni/fwd/ref.h>
 #include <scapix/jni/fwd/array.h>
 #include <scapix/jni/fwd/signature.h>
@@ -47,12 +48,6 @@ template <typename T>
 struct signature<T[]>
 {
 	static constexpr auto value = signature_v<array<T>>;
-};
-
-template <typename T, typename ...Params>
-struct signature<generic_type<T, Params...>>
-{
-	static constexpr auto value = signature_v<T>;
 };
 
 template <typename T, typename Erasure>
