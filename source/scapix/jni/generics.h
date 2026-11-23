@@ -9,6 +9,11 @@
 
 #include <scapix/jni/element.h>
 #include <scapix/jni/fwd/object.h>
+#include <scapix/jni/fwd/signature.h>
+
+// Specializations of traits (element_type, signature) for these types are declared here, with the types.
+// A specialization must be visible before its first use, otherwise primary template is silently used instead.
+// Any header which declares these types (including forward declarations) must also declare their specializations.
 
 namespace scapix::jni {
 
@@ -46,6 +51,12 @@ template <typename T, typename Erasure>
 struct element_type<erased<T, Erasure>>
 {
 	using type = element_type_t<T>;
+};
+
+template <typename T, typename Erasure>
+struct signature<erased<T, Erasure>>
+{
+	static constexpr auto value = signature_v<Erasure>;
 };
 
 } // namespace scapix::jni
