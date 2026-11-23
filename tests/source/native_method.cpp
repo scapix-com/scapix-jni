@@ -227,9 +227,9 @@ static_assert(check_info<m_describe_double, jstring_(jdouble), std::string(*)(cl
 static_assert(check_info<m_counter_format_int, jstring_(jint), std::string(counter::*)(int) const>);
 static_assert(check_info<m_counter_format_double, jstring_(jdouble), std::string(counter::*)(double) const>);
 
-// android_critical_native
+// android_critical_native_method
 
-constexpr auto m_critical_add = jni::android_critical_native("criticalAdd", &critical_add);
+constexpr auto m_critical_add = jni::android_critical_native_method("criticalAdd", &critical_add);
 
 static_assert(check_info<m_critical_add, jint(jint, jint), jint(*)(jint, jint), true>);
 

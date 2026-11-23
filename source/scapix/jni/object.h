@@ -35,7 +35,7 @@ ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
 
 // new_object
 
-template <reference T, init_method Type, typename ...Args>
+template <reference T, init_method_type Type, typename ...Args>
 ref<T> new_object(Args&&... args)
 {
 	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);

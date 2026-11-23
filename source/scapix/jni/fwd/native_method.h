@@ -60,7 +60,7 @@ using deduce_signature = typename detail::deduce_signature<remove_function_quali
 
 // native_method_info
 
-template <method JniType, typename CppType, std::size_t N, bool AndroidCriticalNative = false>
+template <method_type JniType, typename CppType, std::size_t N, bool AndroidCriticalNative = false>
 struct native_method_info
 {
 	using jni_type = JniType;
@@ -76,7 +76,7 @@ class native_methods;
 
 namespace detail {
 
-template <method JniType, bool AndroidCriticalNative = false>
+template <method_type JniType, bool AndroidCriticalNative = false>
 constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 {
 	return native_method_info<JniType, decltype(ptr), string_size<decltype(name)>(), AndroidCriticalNative>{name, ptr};
@@ -94,13 +94,13 @@ constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 
 // Both types specified - use CppType to select overload.
 
-template <method JniType, function_type CppType, reference T>
+template <method_type JniType, function_type CppType, reference T>
 constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<CppType, T>* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
 }
 
-template <method JniType, function_type CppType, class_type Class>
+template <method_type JniType, function_type CppType, class_type Class>
 constexpr auto native_method(compile_time_string auto&& name, std::type_identity_t<CppType> Class::* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
@@ -108,13 +108,13 @@ constexpr auto native_method(compile_time_string auto&& name, std::type_identity
 
 // Only JniType specified - use JniType to select overload.
 
-template <method JniType, reference T>
+template <method_type JniType, reference T>
 constexpr auto native_method(compile_time_string auto&& name, detail::prepend_ref<JniType, T>* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
 }
 
-template <method JniType, class_type Class>
+template <method_type JniType, class_type Class>
 constexpr auto native_method(compile_time_string auto&& name, std::type_identity_t<JniType> Class::* ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
@@ -123,7 +123,7 @@ constexpr auto native_method(compile_time_string auto&& name, std::type_identity
 // static without ref<class_> parameter
 // Accepts any single function or selects overload based on CppType (which defaults to JniType).
 
-template <method JniType, function_type CppType = JniType, typename Ptr = std::add_pointer_t<CppType>>
+template <method_type JniType, function_type CppType = JniType, typename Ptr = std::add_pointer_t<CppType>>
 constexpr auto native_method(compile_time_string auto&& name, Ptr ptr)
 {
 	return detail::native_method<JniType>(name, ptr);
@@ -139,8 +139,8 @@ constexpr auto native_method(compile_time_string auto&& name, auto ptr)
 // Android method marked @CriticalNative
 // https://developer.android.com/reference/dalvik/annotation/optimization/CriticalNative
 
-template <android_critical_native_type Type>
-constexpr auto android_critical_native(compile_time_string auto&& name, Type* ptr)
+template <android_critical_native_method_type Type>
+constexpr auto android_critical_native_method(compile_time_string auto&& name, Type* ptr)
 {
 	return detail::native_method<Type, true>(name, ptr);
 }

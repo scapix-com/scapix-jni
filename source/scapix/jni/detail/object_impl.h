@@ -28,13 +28,13 @@ public:
 
 	// new_object
 
-	template <init_method Type, typename ...Args>
+	template <init_method_type Type, typename ...Args>
 	static local_ref<object<ClassName>> new_object(Args&&... args)
 	{
 		return new_object<Type>(method_id<"<init>", Type>(), std::forward<Args>(args)...);
 	}
 
-	template <init_method Type, typename ...Args>
+	template <init_method_type Type, typename ...Args>
 	static local_ref<object<ClassName>> new_object(jmethodID id, Args&&... args)
 	{
 		return detail::api::call<Type>::template new_object<object<ClassName>>(class_object().handle(), id, std::forward<Args>(args)...);
@@ -42,13 +42,13 @@ public:
 
 	// call_method
 
-	template <fixed_string Name, method Type, typename ...Args>
+	template <fixed_string Name, method_type Type, typename ...Args>
 	auto call_method(Args&&... args) const
 	{
 		return call_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <method Type, typename ...Args>
+	template <method_type Type, typename ...Args>
 	auto call_method(jmethodID id, Args&&... args) const
 	{
 		return detail::api::call<Type>::method(handle(), id, std::forward<Args>(args)...);
@@ -56,13 +56,13 @@ public:
 
 	// call_nonvirtual_method
 
-	template <fixed_string Name, method Type, typename ...Args>
+	template <fixed_string Name, method_type Type, typename ...Args>
 	auto call_nonvirtual_method(Args&&... args) const
 	{
 		return call_nonvirtual_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <method Type, typename ...Args>
+	template <method_type Type, typename ...Args>
 	auto call_nonvirtual_method(jmethodID id, Args&&... args) const
 	{
 		return detail::api::call<Type>::nonvirtual_method(handle(), class_object().handle(), id, std::forward<Args>(args)...);
@@ -70,13 +70,13 @@ public:
 
 	// call_static_method
 
-	template <fixed_string Name, method Type, typename ...Args>
+	template <fixed_string Name, method_type Type, typename ...Args>
 	static auto call_static_method(Args&&... args)
 	{
 		return call_static_method<Type>(static_method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
-	template <method Type, typename ...Args>
+	template <method_type Type, typename ...Args>
 	static auto call_static_method(jmethodID id, Args&&... args)
 	{
 		return detail::api::call<Type>::static_method(class_object().handle(), id, std::forward<Args>(args)...);
@@ -140,10 +140,10 @@ public:
 
 	// reflect
 
-	template <fixed_string Name, method Type>
+	template <fixed_string Name, method_type Type>
 	static ref<object<"java/lang/reflect/Executable">> to_reflected_method();
 
-	template <fixed_string Name, method Type>
+	template <fixed_string Name, method_type Type>
 	static ref<object<"java/lang/reflect/Executable">> to_reflected_static_method();
 
 	template <fixed_string Name, typename Type>
@@ -196,10 +196,10 @@ private:
 	// IDs are cached per JNI signature (not per C++ type),
 	// so e.g. all erased<T> variants of a method share one cache.
 
-	template <fixed_string Name, method Type>
+	template <fixed_string Name, method_type Type>
 	static jmethodID method_id() { return method_id<Name, signature_v<Type>>(); }
 
-	template <fixed_string Name, method Type>
+	template <fixed_string Name, method_type Type>
 	static jmethodID static_method_id() { return static_method_id<Name, signature_v<Type>>(); }
 
 	template <fixed_string Name, typename Type>
@@ -235,14 +235,14 @@ private:
 namespace scapix::jni::detail {
 
 template <fixed_string ClassName>
-template <fixed_string Name, method Type>
+template <fixed_string Name, method_type Type>
 inline ref<object<"java/lang/reflect/Executable">> object_impl<ClassName>::to_reflected_method()
 {
 	return class_object()->to_reflected_method(method_id<Name, Type>(), false);
 }
 
 template <fixed_string ClassName>
-template <fixed_string Name, method Type>
+template <fixed_string Name, method_type Type>
 inline ref<object<"java/lang/reflect/Executable">> object_impl<ClassName>::to_reflected_static_method()
 {
 	return class_object()->to_reflected_method(static_method_id<Name, Type>(), true);

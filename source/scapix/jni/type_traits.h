@@ -241,59 +241,59 @@ struct java_type<ref<T, Scope>>
 template <typename T>
 using java_type_t = typename java_type<T>::type;
 
-// method
+// method_type
 
 namespace detail {
 
 template <typename F>
-constexpr bool is_method = false;
+constexpr bool is_method_type = false;
 
 template <typename R, typename ...Args>
-constexpr bool is_method<R(Args...)> = return_type<R> && (type<Args> && ...);
+constexpr bool is_method_type<R(Args...)> = return_type<R> && (type<Args> && ...);
 
 template <typename R, typename ...Args>
-constexpr bool is_method<R(Args...) noexcept> = is_method<R(Args...)>;
+constexpr bool is_method_type<R(Args...) noexcept> = is_method_type<R(Args...)>;
 
 } // namespace detail
 
 template <typename F>
-concept method = detail::is_method<F>;
+concept method_type = detail::is_method_type<F>;
 
-// init_method
+// init_method_type
 
 namespace detail {
 
 template <typename F>
-constexpr bool is_init_method = false;
+constexpr bool is_init_method_type = false;
 
 template <typename ...Args>
-constexpr bool is_init_method<void(Args...)> = (type<Args> && ...);
+constexpr bool is_init_method_type<void(Args...)> = (type<Args> && ...);
 
 template <typename ...Args>
-constexpr bool is_init_method<void(Args...) noexcept> = is_init_method<void(Args...)>;
+constexpr bool is_init_method_type<void(Args...) noexcept> = is_init_method_type<void(Args...)>;
 
 } // namespace detail
 
 template <typename F>
-concept init_method = detail::is_init_method<F>;
+concept init_method_type = detail::is_init_method_type<F>;
 
-// android_critical_native_type
+// android_critical_native_method_type
 
 namespace detail {
 
 template <typename F>
-constexpr bool is_android_critical_native_type = false;
+constexpr bool is_android_critical_native_method_type = false;
 
 template <typename R, typename ...Args>
-constexpr bool is_android_critical_native_type<R(Args...)> = primitive_or_void<R> && (primitive<Args> && ...);
+constexpr bool is_android_critical_native_method_type<R(Args...)> = primitive_or_void<R> && (primitive<Args> && ...);
 
 template <typename R, typename ...Args>
-constexpr bool is_android_critical_native_type<R(Args...) noexcept> = is_android_critical_native_type<R(Args...)>;
+constexpr bool is_android_critical_native_method_type<R(Args...) noexcept> = is_android_critical_native_method_type<R(Args...)>;
 
 } // namespace detail
 
 template <typename F>
-concept android_critical_native_type = detail::is_android_critical_native_type<F>;
+concept android_critical_native_method_type = detail::is_android_critical_native_method_type<F>;
 
 } // namespace scapix::jni
 
