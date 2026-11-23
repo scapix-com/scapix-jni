@@ -24,15 +24,15 @@ namespace scapix::jni {
 // With generated headers: ref<java::util::Set<java::lang::String>>
 // Without generated headers: ref<parameterized<java_util_set, object<"java/lang/String">>>
 //
-// Object is a raw (non-generic) reference type, which provides class name and base classes.
+// T is a raw (non-generic) reference type, which provides class name and base classes.
 
-template <typename Object, typename ...Args>
+template <typename T, typename ...Args>
 class parameterized;
 
-template <typename Object, typename ...Args>
-struct element_type<parameterized<Object, Args...>>
+template <typename T, typename ...Args>
+struct element_type<parameterized<T, Args...>>
 {
-	using type = Object;
+	using type = T;
 };
 
 // erased
