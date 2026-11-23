@@ -4,7 +4,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 file(GLOB_RECURSE java_sources CONFIGURE_DEPENDS "java/*.java")
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${java_sources})
 
-add_jar(scapix_jni_tests_jar SOURCES ${java_sources} OUTPUT_NAME scapix_jni_tests)
+add_jar(scapix_jni_tests_jar SOURCES ${java_sources} INCLUDE_JARS scapix_jni_jar OUTPUT_NAME scapix_jni_tests)
 get_target_property(scapix_jni_tests_jar_file scapix_jni_tests_jar JAR_FILE)
 
 add_executable(scapix_jni_tests ${sources} ${java_sources})

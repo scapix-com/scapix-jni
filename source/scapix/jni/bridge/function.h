@@ -28,6 +28,18 @@ public:
 		delete this;
 	}
 
+	// Returns this as F, if it is F (without RTTI).
+
+	template <typename F>
+	F* target() noexcept
+	{
+		return type() == &F::type_tag ? static_cast<F*>(this) : nullptr;
+	}
+
+private:
+
+	virtual const void* type() const noexcept = 0;
+
 };
 
 template <typename T>
@@ -45,7 +57,15 @@ public:
 		return func(std::forward<Args>(args)...);
 	}
 
+	const std::function<R(Args...)>& get() const noexcept { return func; }
+
 private:
+
+	friend class function;
+
+	static constexpr char type_tag = 0;
+
+	const void* type() const noexcept override { return &type_tag; }
 
 	std::function<R(Args...)> func;
 
@@ -97,27 +117,49 @@ T& convert_this(ref<J> x)
 	return *static_cast<T*>(static_pointer_cast<bridge::function>(x)->get_ptr());
 }
 
+// Round trip unwraps instead of wrapping again:
+// C++ -> Java -> C++ returns (a copy of) the original std::function,
+// Java -> C++ -> Java returns the original Java object.
+
 template <fixed_string ClassName, typename JniR, typename ...JniArgs, fixed_string Name, typename R, typename ...Args>
 struct convert<ref<function<ClassName, JniR(JniArgs...), Name>>, std::function<R(Args...)>>
 {
-	static std::function<R(Args...)> cpp(ref<function<ClassName, JniR(JniArgs...), Name>> i)
+	using java_function = function<ClassName, JniR(JniArgs...), Name>;
+
+	// std::function target calling Java object.
+
+	struct java_caller
+	{
+		R operator()(Args&&... args) const
+		{
+			if constexpr (std::is_void_v<R>)
+				return obj->call(convert_jni<JniArgs>(std::forward<Args>(args))...);
+			else
+				return convert_cpp<R>(obj->call(convert_jni<JniArgs>(std::forward<Args>(args))...));
+		}
+
+		global_ref<java_function> obj;
+	};
+
+	static std::function<R(Args...)> cpp(ref<java_function> i)
 	{
 		if (!i)
 			return nullptr;
 
-		return std::function<R(Args...)>([i = global_ref<function<ClassName, JniR(JniArgs...), Name>>(i)](Args&&... args)
-		{
-			if constexpr (std::is_void_v<R>)
-				return i->call(convert_jni<JniArgs>(std::forward<Args>(args))...);
-			else
-				return convert_cpp<R>(i->call(convert_jni<JniArgs>(std::forward<Args>(args))...));
-		});
+		if (i->template is_instance_of<bridge::function>())
+			if (auto f = static_pointer_cast<bridge::function>(i)->get_ptr()->template target<bridge::cpp::function_impl<R(Args...)>>())
+				return f->get();
+
+		return java_caller{ global_ref<java_function>(i) };
 	}
 
-	static ref<function<ClassName, JniR(JniArgs...), Name>> jni(std::function<R(Args...)> f)
+	static ref<java_function> jni(std::function<R(Args...)> f)
 	{
 		if (!f)
 			return nullptr;
+
+		if (auto c = f.template target<java_caller>())
+			return local_ref<java_function>(c->obj);
 
 		return new_object<bridge::function_impl<ClassName, JniR(JniArgs...), Name>>(std::move(f));
 	}
