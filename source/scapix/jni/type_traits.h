@@ -243,37 +243,57 @@ using java_type_t = typename java_type<T>::type;
 
 // method
 
+namespace detail {
+
 template <typename F>
-concept method = requires (F* f)
-{
-// clang 22 bug
-#ifdef __clang__
-	[] <typename R, typename ...Args> (R(*)(Args...)) {}(f);
-#else
-	[] <return_type R, type ...Args> (R(*)(Args...)) {}(f);
-#endif
-};
+constexpr bool is_method = false;
+
+template <typename R, typename ...Args>
+constexpr bool is_method<R(Args...)> = return_type<R> && (type<Args> && ...);
+
+template <typename R, typename ...Args>
+constexpr bool is_method<R(Args...) noexcept> = is_method<R(Args...)>;
+
+} // namespace detail
+
+template <typename F>
+concept method = detail::is_method<F>;
 
 // init_method
 
+namespace detail {
+
 template <typename F>
-concept init_method = requires (F* f)
-{
-// clang 22 bug
-#ifdef __clang__
-	[] <typename ...Args> (void(*)(Args...)) {}(f);
-#else
-	[] <type ...Args> (void(*)(Args...)) {}(f);
-#endif
-};
+constexpr bool is_init_method = false;
+
+template <typename ...Args>
+constexpr bool is_init_method<void(Args...)> = (type<Args> && ...);
+
+template <typename ...Args>
+constexpr bool is_init_method<void(Args...) noexcept> = is_init_method<void(Args...)>;
+
+} // namespace detail
+
+template <typename F>
+concept init_method = detail::is_init_method<F>;
 
 // android_critical_native_type
 
+namespace detail {
+
 template <typename F>
-concept android_critical_native_type = requires (F* f)
-{
-	[] <primitive_or_void R, primitive ...Args> (R(*)(Args...)) {}(f);
-};
+constexpr bool is_android_critical_native_type = false;
+
+template <typename R, typename ...Args>
+constexpr bool is_android_critical_native_type<R(Args...)> = primitive_or_void<R> && (primitive<Args> && ...);
+
+template <typename R, typename ...Args>
+constexpr bool is_android_critical_native_type<R(Args...) noexcept> = is_android_critical_native_type<R(Args...)>;
+
+} // namespace detail
+
+template <typename F>
+concept android_critical_native_type = detail::is_android_critical_native_type<F>;
 
 } // namespace scapix::jni
 
