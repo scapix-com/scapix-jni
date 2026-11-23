@@ -25,6 +25,7 @@
 #include <scapix/jni/function.h>
 #include <scapix/jni/struct.h>
 #include <scapix/jni/cast.h>
+#include <scapix/jni/range.h>
 #include <scapix/jni/bridge/function.h>
 
 namespace scapix::jni {
@@ -272,7 +273,7 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 
 namespace detail {
 
-using java_util_collection = object<"java/util/Collection">;
+using java_util_collection = object<"java/util/Collection", java_lang_iterable>;
 using java_util_map = object<"java/util/Map">;
 
 // Non-template JNI loops: one copy in the binary for all element types.
@@ -280,26 +281,17 @@ using java_util_map = object<"java/util/Map">;
 
 inline void for_each(ref<java_util_collection> c, void (*f)(void*, ref<>), void* ctx)
 {
-	auto i = c->call_method<"iterator", ref<object<"java/util/Iterator">>()>();
-
-	while (i->call_method<"hasNext", jboolean()>())
-		f(ctx, i->call_method<"next", ref<>()>());
+	for (ref<> e : range(c))
+		f(ctx, e);
 }
 
 inline void for_each(ref<java_util_map> m, void (*f)(void*, ref<>, ref<>), void* ctx)
 {
-	struct context
+	for (ref<> e : range(m->call_method<"entrySet", ref<object<"java/util/Set", java_lang_iterable>>()>()))
 	{
-		void (*f)(void*, ref<>, ref<>);
-		void* ctx;
-	} c{f, ctx};
-
-	for_each(static_pointer_cast<java_util_collection>(m->call_method<"entrySet", ref<object<"java/util/Set">>()>()), [](void* p, ref<> e)
-	{
-		auto& c = *static_cast<context*>(p);
 		auto entry = static_pointer_cast<object<"java/util/Map$Entry">>(e);
-		c.f(c.ctx, entry->call_method<"getKey", ref<>()>(), entry->call_method<"getValue", ref<>()>());
-	}, &c);
+		f(ctx, entry->call_method<"getKey", ref<>()>(), entry->call_method<"getValue", ref<>()>());
+	}
 }
 
 inline void add(ref<java_util_collection> c, ref<> e)
