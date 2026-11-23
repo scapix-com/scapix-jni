@@ -17,30 +17,15 @@ namespace scapix::jni {
 #include <scapix/core/warning/inaccessible_base.h>
 
 template <fixed_string ClassName, typename ...Bases>
-class object_base : private detail::object_impl<ClassName>, public Bases...
+class object_base : protected detail::object_impl<ClassName>, public Bases...
 {
 	using impl = detail::object_impl<ClassName>;
 
 protected:
 
-	template <typename ...Args>
-	static auto new_object(Args&&... args)
-	{
-		return jni::new_object<object<ClassName>, void(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
-	}
-
-	template <fixed_string Name, typename R, typename ...Args>
-	auto call_method(Args&&... args) const
-	{
-		return impl::template call_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
-	}
-
-	template <fixed_string Name, typename R, typename ...Args>
-	static auto call_static_method(Args&&... args)
-	{
-		return impl::template call_static_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
-	}
-
+	using impl::new_object;
+	using impl::call_method;
+	using impl::call_static_method;
 	using impl::get_field;
 	using impl::set_field;
 	using impl::get_static_field;

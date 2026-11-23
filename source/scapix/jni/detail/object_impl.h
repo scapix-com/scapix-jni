@@ -158,6 +158,31 @@ public:
 
 protected:
 
+	// These variants detect signature from parameter types.
+	// Used only by generated code.
+	// Constrained, so they don't exist (instead of failing to compile) for other parameter types.
+
+	template <typename ...Args>
+		requires (type<std::remove_cvref_t<Args>> && ...)
+	static auto new_object(Args&&... args)
+	{
+		return new_object<void(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+	}
+
+	template <fixed_string Name, return_type R, typename ...Args>
+		requires (type<std::remove_cvref_t<Args>> && ...)
+	auto call_method(Args&&... args) const
+	{
+		return call_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+	}
+
+	template <fixed_string Name, return_type R, typename ...Args>
+		requires (type<std::remove_cvref_t<Args>> && ...)
+	static auto call_static_method(Args&&... args)
+	{
+		return call_static_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+	}
+
 	object_impl(jobject h) : handle_(h) {}
 	jobject handle() const { return handle_; }
 
