@@ -114,7 +114,7 @@ TEST_CASE("object array", "[array]")
 	{
 		std::vector<std::string> v;
 
-		for (auto&& i : a->elements())
+		for (auto&& i : *a)
 			v.push_back(i.get());
 
 		CHECK(v == std::vector<std::string>{ "zero", "one", "two" });

@@ -171,11 +171,6 @@ public:
 		return detail::check_result<array>(detail::env()->NewObjectArray(len, raw_object<T>::class_object().handle(), init.handle()));
 	}
 
-	// for consistency with primitive array
-
-	array& elements() { return *this; }
-	const array& elements() const { return *this; }
-
 private:
 
 	void check_range(size_type pos) const
