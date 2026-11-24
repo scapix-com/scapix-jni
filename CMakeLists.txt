@@ -43,13 +43,34 @@ else()
     # SCAPIX_JNI_PLATFORM_CLASSES
     # For JDK, this is the path to the jmods directory.
     # For JDK-8, this is the path to the "lib/ct.sym" file.
+    #
+    # Use the JDK found by FindJNI (the one whose headers and JVM we build against).
+    # Its include directory is always "<jdk>/include", even when it is found via symlinks
+    # (e.g. /usr/lib/jvm/default-java), unlike "javac" which is often a symlink or a launcher stub
+    # (/usr/bin/javac on Linux and macOS, "Common Files/Oracle/Java/javapath" on Windows).
+    # The JDK version is read from "<jdk>/release", which belongs to the same JDK.
 
-    cmake_path(SET jdk_home NORMALIZE "${Java_JAVAC_EXECUTABLE}/../..")
+    cmake_path(GET JAVA_INCLUDE_PATH PARENT_PATH jdk_home)
 
-    if(Java_VERSION_MAJOR EQUAL 1)
-        set(SCAPIX_JNI_PLATFORM_CLASSES "${jdk_home}/lib/ct.sym" CACHE FILEPATH "Path to Java platform classes")
+    set(jdk_version "")
+    if(EXISTS "${jdk_home}/release")
+        file(STRINGS "${jdk_home}/release" jdk_version REGEX "^JAVA_VERSION=" LIMIT_COUNT 1)
+        string(REGEX REPLACE "^JAVA_VERSION=\"?([^\"]*)\"?$" "\\1" jdk_version "${jdk_version}")
+    endif()
+
+    if(jdk_version MATCHES "^1\\.")
+        set(platform_classes "${jdk_home}/lib/ct.sym")
+        set(platform_classes_type FILEPATH)
     else()
-        set(SCAPIX_JNI_PLATFORM_CLASSES "${jdk_home}/jmods" CACHE PATH "Path to Java platform classes")
+        set(platform_classes "${jdk_home}/jmods")
+        set(platform_classes_type PATH)
+    endif()
+
+    # Replace a cached value that does not exist (e.g. computed by an earlier version of this file),
+    # but never override a valid user-provided path.
+
+    if(NOT EXISTS "${SCAPIX_JNI_PLATFORM_CLASSES}")
+        set(SCAPIX_JNI_PLATFORM_CLASSES "${platform_classes}" CACHE ${platform_classes_type} "Path to Java platform classes" FORCE)
     endif()
 
 endif()
@@ -57,7 +78,19 @@ endif()
 message(STATUS "SCAPIX_JNI_PLATFORM_CLASSES: ${SCAPIX_JNI_PLATFORM_CLASSES}")
 
 if(NOT EXISTS "${SCAPIX_JNI_PLATFORM_CLASSES}")
-    message(WARNING "SCAPIX_JNI_PLATFORM_CLASSES not found at: ${SCAPIX_JNI_PLATFORM_CLASSES}")
+    set(hint "")
+    if(NOT ANDROID AND SCAPIX_JNI_PLATFORM_CLASSES STREQUAL "${jdk_home}/jmods")
+        string(REGEX MATCH "^[0-9]+" jdk_major "${jdk_version}")
+        if(NOT jdk_major)
+            set(jdk_major "<version>")
+        endif()
+        string(CONCAT hint
+            "\nThis JDK (${jdk_home}) does not include the jmods directory. "
+            "Some Linux distributions package jmods separately (e.g. 'openjdk-${jdk_major}-jmods'); install it if available. "
+            "Some JDK 24+ builds do not ship jmods at all (JEP 493); use a JDK distribution that includes them. "
+            "Alternatively, set SCAPIX_JNI_PLATFORM_CLASSES to an existing jmods directory.")
+    endif()
+    message(WARNING "SCAPIX_JNI_PLATFORM_CLASSES not found at: ${SCAPIX_JNI_PLATFORM_CLASSES}${hint}")
 endif()
 
 add_library(scapix_jni)
