@@ -35,6 +35,10 @@ struct element_type<parameterized<T, Args...>>
 	using type = T;
 };
 
+// deprecated name
+template <typename T, typename ...Args>
+using generic_type = parameterized<T, Args...>;
+
 // erased
 //
 // Type T with JNI signature of Erasure.
