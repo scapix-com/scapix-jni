@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28...4.5)
 
-project(scapix-jni VERSION 2.7.0 LANGUAGES CXX)
+project(scapix-jni VERSION 2.8.0 LANGUAGES CXX)
 
 option(SCAPIX_JNI_CACHE_CLASS_LOADER "Load classes with cached ClassLoader instead of JNI FindClass()" ON)
 option(SCAPIX_JNI_AUTO_ATTACH_THREAD "Automatically attach native threads to JVM" ON)
