@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <scapix/jni/array.h>

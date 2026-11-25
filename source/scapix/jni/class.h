@@ -10,6 +10,7 @@
 #ifndef SCAPIX_JNI_CLASS_H
 #define SCAPIX_JNI_CLASS_H
 
+#include <cstddef>
 #include <scapix/jni/object.h>
 #include <scapix/jni/signature.h>
 #include <scapix/jni/detail/exception.h>

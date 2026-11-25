@@ -7,7 +7,7 @@
 #ifndef SCAPIX_JNI_BRIDGE_NATIVE_EXCEPTION_H
 #define SCAPIX_JNI_BRIDGE_NATIVE_EXCEPTION_H
 
-#include <memory>
+#include <concepts>
 #include <exception>
 #include <scapix/jni/throwable.h>
 #include <scapix/jni/string.h>

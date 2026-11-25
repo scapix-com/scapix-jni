@@ -7,10 +7,13 @@
 #ifndef SCAPIX_JNI_REF_H
 #define SCAPIX_JNI_REF_H
 
+#include <cstddef>
 #include <concepts>
+#include <type_traits>
 #include <utility>
 #include <scapix/core/type_traits.h>
 #include <scapix/jni/type_traits.h>
+#include <scapix/jni/env.h>
 #include <scapix/jni/signature.h>
 #include <scapix/jni/element.h>
 #include <scapix/jni/detail/api/ref.h>

@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_COMPARE_H
 #define SCAPIX_JNI_COMPARE_H
 
+#include <cstddef>
 #include <functional>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/type_traits.h>

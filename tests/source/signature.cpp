@@ -1,4 +1,5 @@
 #include <string_view>
+#include <tuple>
 #include <scapix/jni/signature.h>
 #include <scapix/jni/array.h>
 #include <scapix/jni/string.h>

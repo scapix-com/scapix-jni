@@ -8,6 +8,7 @@
 #define SCAPIX_JNI_DETAIL_OBJECT_IMPL_H
 
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <scapix/core/immortal.h>
 #include <scapix/core/fixed_string.h>

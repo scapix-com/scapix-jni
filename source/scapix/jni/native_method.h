@@ -7,6 +7,9 @@
 #ifndef SCAPIX_JNI_NATIVE_METHOD_H
 #define SCAPIX_JNI_NATIVE_METHOD_H
 
+#include <cassert>
+#include <type_traits>
+#include <utility>
 #include <scapix/jni/fwd/native_method.h>
 #include <scapix/core/tuple.h>
 #include <scapix/core/remove_function_qualifiers.h>

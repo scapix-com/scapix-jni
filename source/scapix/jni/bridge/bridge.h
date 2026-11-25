@@ -7,9 +7,10 @@
 #ifndef SCAPIX_JNI_BRIDGE_BRIDGE_H
 #define SCAPIX_JNI_BRIDGE_BRIDGE_H
 
+#include <cassert>
 #include <memory>
 #include <utility>
-#include <type_traits>
+#include <concepts>
 #include <scapix/jni/object.h>
 #include <scapix/jni/convert.h>
 #include <scapix/jni/fwd/native_method.h>

@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_FWD_NATIVE_METHOD_H
 #define SCAPIX_JNI_FWD_NATIVE_METHOD_H
 
+#include <cstddef>
 #include <type_traits>
 #include <scapix/core/type_traits.h>
 #include <scapix/core/fixed_string.h>

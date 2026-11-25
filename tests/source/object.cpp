@@ -1,7 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <string>
+#include <vector>
 #include <scapix/jni/object.h>
+#include <scapix/jni/string.h>
+#include <scapix/jni/array.h>
 #include <scapix/jni/class.h>
 #include <scapix/jni/cast.h>
 #include <scapix/jni/convert.h>

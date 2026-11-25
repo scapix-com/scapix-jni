@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <utility>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/string.h>
 #include <scapix/jni/compare.h>

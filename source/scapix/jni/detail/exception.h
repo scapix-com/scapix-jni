@@ -8,7 +8,7 @@
 #define SCAPIX_JNI_DETAIL_EXCEPTION_H
 
 #include <type_traits>
-#include <scapix/jni/type_traits.h>
+#include <scapix/jni/env.h>
 #include <scapix/jni/ref.h>
 
 namespace scapix::jni::detail {

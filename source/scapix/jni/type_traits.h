@@ -8,6 +8,7 @@
 #define SCAPIX_JNI_TYPE_TRAITS_H
 
 #include <bit>
+#include <concepts>
 #include <tuple>
 #include <type_traits>
 #include <scapix/core/fixed_string.h>

@@ -7,8 +7,10 @@
 #ifndef SCAPIX_JNI_BRIDGE_FUNCTION_H
 #define SCAPIX_JNI_BRIDGE_FUNCTION_H
 
+#include <concepts>
 #include <functional>
 #include <utility>
+#include <type_traits>
 #include <scapix/jni/object.h>
 #include <scapix/jni/function.h>
 #include <scapix/jni/convert.h>

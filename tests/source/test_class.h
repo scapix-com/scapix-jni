@@ -2,8 +2,6 @@
 #define SCAPIX_JNI_TESTS_TEST_CLASS_H
 
 #include <scapix/jni/object.h>
-#include <scapix/jni/string.h>
-#include <scapix/jni/array.h>
 
 namespace test {
 

@@ -4,6 +4,7 @@
 	Copyright (c) 2019-2026 Boris Rasin (boris@scapix.com)
 */
 
+#include <utility>
 #include <scapix/jni/detail/exception.h>
 #include <scapix/jni/error.h>
 #include <scapix/jni/ref.h>

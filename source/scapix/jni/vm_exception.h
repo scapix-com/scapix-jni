@@ -9,6 +9,7 @@
 
 #include <string>
 #include <exception>
+#include <utility>
 #include <scapix/jni/ref.h>
 #include <scapix/jni/throwable.h>
 #include <scapix/jni/string.h>

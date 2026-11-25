@@ -11,7 +11,9 @@
 	XCode: enter into debugger window: "pr h -s false SIGSEGV", then press "Continue".
 */
 
+#include <exception>
 #include <iostream>
+#include <iterator>
 #include <optional>
 
 #include <catch2/catch_session.hpp>

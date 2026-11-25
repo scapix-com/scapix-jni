@@ -1,9 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
-#include <string>
 #include <scapix/jni/vm_exception.h>
-#include <scapix/jni/error.h>
+#include <scapix/jni/string.h>
 
 #include "test_class.h"
 
