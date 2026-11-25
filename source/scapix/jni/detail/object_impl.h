@@ -159,34 +159,6 @@ public:
 
 protected:
 
-	// These variants detect signature from parameter types.
-	// Used only by generated code.
-	// Constrained, so they don't exist (instead of failing to compile) for other parameter types.
-
-	template <typename ...Args>
-		requires init_method_type<void(std::remove_reference_t<Args>...)>
-	static local_ref<object<ClassName>> new_object(Args&&... args)
-	{
-		using type = void(std::remove_reference_t<Args>...);
-		return detail::api::call<type>::template new_object<object<ClassName>>(class_object().handle(), method_id<"<init>", signature_v<type>>(), std::forward<Args>(args)...);
-	}
-
-	template <fixed_string Name, typename R, typename ...Args>
-		requires method_type<R(std::remove_reference_t<Args>...)>
-	R call_method(Args&&... args) const
-	{
-		using type = R(std::remove_reference_t<Args>...);
-		return detail::api::call<type>::method(handle(), method_id<Name, signature_v<type>>(), std::forward<Args>(args)...);
-	}
-
-	template <fixed_string Name, typename R, typename ...Args>
-		requires method_type<R(std::remove_reference_t<Args>...)>
-	static R call_static_method(Args&&... args)
-	{
-		using type = R(std::remove_reference_t<Args>...);
-		return detail::api::call<type>::static_method(class_object().handle(), static_method_id<Name, signature_v<type>>(), std::forward<Args>(args)...);
-	}
-
 	object_impl(jobject h) : handle_(h) {}
 	jobject handle() const { return handle_; }
 
