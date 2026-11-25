@@ -15,7 +15,7 @@ namespace jni = scapix::jni;
 
 TEST_CASE("primitive array", "[array]")
 {
-	auto a = jni::new_object<jni::array<jint>>(5);
+	auto a = jni::array<jint>::new_array(5);
 
 	REQUIRE(a);
 	CHECK(a->size() == 5);
@@ -87,27 +87,27 @@ TEST_CASE("primitive array", "[array]")
 
 TEST_CASE("primitive array element types", "[array]")
 {
-	CHECK(jni::new_object<jni::array<jboolean>>(1)->size() == 1);
-	CHECK(jni::new_object<jni::array<jbyte>>(2)->size() == 2);
-	CHECK(jni::new_object<jni::array<jchar>>(3)->size() == 3);
-	CHECK(jni::new_object<jni::array<jshort>>(4)->size() == 4);
-	CHECK(jni::new_object<jni::array<jlong>>(5)->size() == 5);
-	CHECK(jni::new_object<jni::array<jfloat>>(6)->size() == 6);
-	CHECK(jni::new_object<jni::array<jdouble>>(7)->size() == 7);
+	CHECK(jni::array<jboolean>::new_array(1)->size() == 1);
+	CHECK(jni::array<jbyte>::new_array(2)->size() == 2);
+	CHECK(jni::array<jchar>::new_array(3)->size() == 3);
+	CHECK(jni::array<jshort>::new_array(4)->size() == 4);
+	CHECK(jni::array<jlong>::new_array(5)->size() == 5);
+	CHECK(jni::array<jfloat>::new_array(6)->size() == 6);
+	CHECK(jni::array<jdouble>::new_array(7)->size() == 7);
 }
 
 TEST_CASE("object array", "[array]")
 {
-	auto a = jni::new_object<jni::array<jni::string>>(3);
+	auto a = jni::array<jni::string>::new_array(3);
 
 	REQUIRE(a);
 	CHECK(a->size() == 3);
 	CHECK_FALSE(a->empty());
 	CHECK_FALSE(a[0].get());
 
-	a[0] = jni::string::new_object("zero");
-	a[1] = jni::string::new_object("one");
-	a[2] = jni::string::new_object("two");
+	a[0] = jni::string::new_string_utf("zero");
+	a[1] = jni::string::new_string_utf("one");
+	a[2] = jni::string::new_string_utf("two");
 
 	CHECK(a[1]->length() == 3);
 
@@ -149,7 +149,7 @@ TEST_CASE("object array", "[array]")
 
 	SECTION("init value")
 	{
-		auto b = jni::array<jni::string>::new_object(2, jni::string::new_object("x"));
+		auto b = jni::array<jni::string>::new_array(2, jni::string::new_string_utf("x"));
 		CHECK(std::string(b[0].get()) == "x");
 		CHECK(b[0].get() == b[1].get());
 	}

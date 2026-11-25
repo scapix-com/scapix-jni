@@ -21,7 +21,7 @@ jni::local_ref<array_list> make_list(std::initializer_list<const char*> elements
 	auto list = jni::new_object<array_list, void()>();
 
 	for (auto e : elements)
-		list->call_method<"add", jboolean(jni::ref<>)>(e ? jni::ref<>(jni::string::new_object(e)) : jni::ref<>());
+		list->call_method<"add", jboolean(jni::ref<>)>(e ? jni::ref<>(jni::string::new_string_utf(e)) : jni::ref<>());
 
 	return list;
 }
@@ -139,7 +139,7 @@ TEST_CASE("range: Java exception during iteration", "[range]")
 	auto r = jni::range<jni::string>(list);
 	auto i = r.begin();
 
-	list->call_method<"add", jboolean(jni::ref<>)>(jni::string::new_object("c"));
+	list->call_method<"add", jboolean(jni::ref<>)>(jni::string::new_string_utf("c"));
 
 	CHECK_THROWS_AS(++i, jni::vm_exception); // ConcurrentModificationException
 }

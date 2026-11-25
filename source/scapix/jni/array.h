@@ -166,7 +166,7 @@ public:
 	reference at(size_type pos) { check_range(pos); return (*this)[pos]; }
 	const_reference at(size_type pos) const { check_range(pos); return (*this)[pos]; }
 
-	static ref<array> new_object(jsize len, ref<T> init = {})
+	static ref<array> new_array(jsize len, ref<T> init = {})
 	{
 		return detail::check_result<array>(detail::env()->NewObjectArray(len, raw_object<T>::class_object().handle(), init.handle()));
 	}
@@ -270,7 +270,7 @@ class array<T> : public array_base<T>
 {
 public:
 
-	static ref<array> new_object(jsize len)
+	static ref<array> new_array(jsize len)
 	{
 		return detail::check_result<array>(detail::api::type<T>::new_array(len));
 	}

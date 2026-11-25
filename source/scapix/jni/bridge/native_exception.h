@@ -44,7 +44,7 @@ public:
 		}
 		catch (const std::exception& e)
 		{
-			return new_object<string>(e.what());
+			return string::new_string_utf(e.what());
 		}
 		catch (...)
 		{
@@ -52,11 +52,11 @@ public:
 			int status;
 			auto name = abi::__cxa_current_exception_type()->name();
 			auto demangled_name = abi::__cxa_demangle(name, nullptr, nullptr, &status);
-			auto ret = new_object<string>(demangled_name);
+			auto ret = string::new_string_utf(demangled_name);
 			free(demangled_name);
 			return ret;
 		#else
-			return new_object<string>("unknown");
+			return string::new_string_utf("unknown");
 		#endif
 		}
 	}

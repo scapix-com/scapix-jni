@@ -124,7 +124,7 @@ struct convert_string
 
 	static ref<string> jni(std::string_view str)
 	{
-		auto bytes = new_object<array<jbyte>>(static_cast<jsize>(str.size()));
+		auto bytes = array<jbyte>::new_array(static_cast<jsize>(str.size()));
 		bytes->set_region(0, static_cast<jsize>(str.size()), reinterpret_cast<const jbyte*>(str.data()));
 
 		return new_object<string, void(ref<array<jbyte>>, ref<charset>)>(bytes, utf8_charset());
@@ -146,12 +146,12 @@ struct convert_string
 
 //	static ref<string> jni(std::cstring_view str)
 //	{
-//		return new_object<string>(str);
+//		return string::new_string_utf(str);
 //	}
 
 	static ref<string> jni(const char* str)
 	{
-		return new_object<string>(str);
+		return string::new_string_utf(str);
 	}
 
 	static ref<string> jni(const std::string& str)
@@ -224,7 +224,7 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	static ref<array<J>> jni(const std::vector<T, A>& v)
 	{
 		const auto size = static_cast<jsize>(v.size());
-		auto a = new_object<array<J>>(size);
+		auto a = array<J>::new_array(size);
 		a->set_region(0, size, reinterpret_cast<const J*>(v.data()));
 		return a;
 	}
@@ -242,7 +242,7 @@ struct convert<ref<array<jboolean>>, std::vector<bool, A>>
 	static ref<array<jboolean>> jni(const std::vector<bool, A>& v)
 	{
 		const auto size = static_cast<jsize>(v.size());
-		auto a = new_object<array<jboolean>>(size);
+		auto a = array<jboolean>::new_array(size);
 		auto e = a->elements<lock::critical>(size);
 		std::copy(v.begin(), v.end(), e.begin());
 		return a;
@@ -266,7 +266,7 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	static ref<array<J>> jni(const std::vector<T, A>& v)
 	{
 		const auto size = static_cast<jsize>(v.size());
-		auto a = new_object<array<J>>(size);
+		auto a = array<J>::new_array(size);
 
 		for (jsize i = 0; i < size; ++i)
 			a[i] = convert_jni<ref<J>>(v[i]);

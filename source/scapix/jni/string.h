@@ -79,17 +79,17 @@ class string : public object<"java/lang/String", object<"java/lang/Comparable">>
 {
 public:
 
-	static local_ref<string> new_object(const jchar* buf, jsize len)
+	static local_ref<string> new_string(const jchar* buf, jsize len)
 	{
 		return detail::check_result<string>(detail::env()->NewString(buf, len));
 	}
 
-	static local_ref<string> new_object(std::span<const jchar> str)
+	static local_ref<string> new_string(std::span<const jchar> str)
 	{
-		return new_object(str.data(), static_cast<jsize>(str.size()));
+		return new_string(str.data(), static_cast<jsize>(str.size()));
 	}
 
-	static local_ref<string> new_object(const char* buf)
+	static local_ref<string> new_string_utf(const char* buf)
 	{
 		return detail::check_result<string>(detail::env()->NewStringUTF(buf));
 	}

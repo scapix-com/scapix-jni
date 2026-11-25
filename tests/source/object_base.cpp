@@ -112,6 +112,7 @@ TEST_CASE("object_base", "[object_base]")
 	SECTION("base classes")
 	{
 		auto i = Integer::new_object(42);
+		CHECK(jni::new_object<Integer>(43)->intValue() == 43);
 		REQUIRE(i);
 		CHECK(i->intValue() == 42);
 		CHECK(Integer::valueOf(7)->intValue() == 7);

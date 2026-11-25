@@ -38,7 +38,7 @@ public:
 
 	static local_ref<class_> find_class(const char* name)
 	{
-		return class_::call_static_method<"forName", ref<class_>(ref<string>, jboolean, ref<object<"java/lang/ClassLoader">>)>(new_object<string>(name), JNI_FALSE, loader);
+		return class_::call_static_method<"forName", ref<class_>(ref<string>, jboolean, ref<object<"java/lang/ClassLoader">>)>(string::new_string_utf(name), JNI_FALSE, loader);
 	}
 
 private:

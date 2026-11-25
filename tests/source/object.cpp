@@ -73,12 +73,6 @@ TEST_CASE("new_object", "[object]")
 		auto obj = jni::new_object<test_class, void(jint)>(42);
 		CHECK(obj->get_field<"intField", jint>() == 42);
 	}
-
-	SECTION("class with new_object() static member")
-	{
-		auto s = jni::new_object<jni::string>("abc");
-		CHECK(s->length() == 3);
-	}
 }
 
 TEST_CASE("call methods", "[object]")
@@ -140,7 +134,7 @@ TEST_CASE("fields", "[object]")
 		std::string s = obj->get_field<"stringField", jni::ref<jni::string>>();
 		CHECK(s == "field");
 
-		obj->set_field<"stringField", jni::ref<jni::string>>(jni::string::new_object("changed"));
+		obj->set_field<"stringField", jni::ref<jni::string>>(jni::string::new_string_utf("changed"));
 		s = obj->get_field<"stringField", jni::ref<jni::string>>();
 		CHECK(s == "changed");
 
@@ -171,7 +165,7 @@ TEST_CASE("reflection", "[object]")
 
 TEST_CASE("instance_of and casts", "[object]")
 {
-	jni::ref<> obj = jni::string::new_object("x");
+	jni::ref<> obj = jni::string::new_string_utf("x");
 
 	CHECK(obj->is_instance_of<jni::string>());
 	CHECK(obj->is_instance_of<jni::object<"java/lang/CharSequence">>());

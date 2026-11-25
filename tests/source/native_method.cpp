@@ -119,7 +119,7 @@ std::string describe(jni::ref<jni::class_>, double v) { return "double " + std::
 // instance, ref<NativeTest> first parameter
 
 jint plus_value(jni::ref<native_test> self, jint a) { return self->get_field<"value", jint>() + a; }
-jni::ref<jni::string> greet(jni::ref<native_test>, jni::ref<jni::string> name) { return jni::string::new_object(("hello " + std::string(name)).c_str()); }
+jni::ref<jni::string> greet(jni::ref<native_test>, jni::ref<jni::string> name) { return jni::string::new_string_utf(("hello " + std::string(name)).c_str()); }
 std::string greet_cpp(jni::ref<native_test> self, const std::string& name) { return name + " " + std::to_string(self->get_field<"value", jint>()); }
 
 // exceptions

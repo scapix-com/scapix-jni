@@ -23,30 +23,30 @@ std::u16string to_u16(std::span<const jchar> chars)
 
 } // namespace
 
-TEST_CASE("string::new_object from modified UTF-8", "[string]")
+TEST_CASE("string::new_string_utf", "[string]")
 {
-	auto s = jni::string::new_object("hello");
+	auto s = jni::string::new_string_utf("hello");
 
 	REQUIRE(s);
 	CHECK(s->length() == 5);
 	CHECK(s->length<char>() == 5);
 }
 
-TEST_CASE("string::new_object from UTF-16", "[string]")
+TEST_CASE("string::new_string", "[string]")
 {
 	const jchar buf[] = { 'a', 'b', 0x05D0 };
-	auto s = jni::string::new_object(buf, 3);
+	auto s = jni::string::new_string(buf, 3);
 
 	CHECK(s->length() == 3);
 	CHECK(s->length<char>() == 4); // U+05D0 is 2 bytes in (modified) UTF-8
 }
 
-TEST_CASE("string::new_object from UTF-16 span", "[string]")
+TEST_CASE("string::new_string from span", "[string]")
 {
 	SECTION("array")
 	{
 		const jchar buf[] = { 'a', 'b', 0x05D0 };
-		auto s = jni::string::new_object(std::span(buf));
+		auto s = jni::string::new_string(std::span(buf));
 
 		CHECK(to_u16(s->chars()) == std::u16string{ u'a', u'b', char16_t(0x05D0) });
 	}
@@ -54,7 +54,7 @@ TEST_CASE("string::new_object from UTF-16 span", "[string]")
 	SECTION("subspan (not null terminated)")
 	{
 		const std::vector<jchar> buf = { 'x', 'a', 'b', 'c', 'y' };
-		auto s = jni::string::new_object(std::span(buf).subspan(1, 3));
+		auto s = jni::string::new_string(std::span(buf).subspan(1, 3));
 
 		CHECK(s->length() == 3);
 		CHECK(to_u16(s->chars()) == u"abc");
@@ -63,7 +63,7 @@ TEST_CASE("string::new_object from UTF-16 span", "[string]")
 	SECTION("embedded null")
 	{
 		const jchar buf[] = { 'a', 0, 'b' };
-		auto s = jni::string::new_object(std::span(buf));
+		auto s = jni::string::new_string(std::span(buf));
 
 		CHECK(s->length() == 3);
 		CHECK(s->length<char>() == 4); // U+0000 is 2 bytes (C0 80) in modified UTF-8
@@ -72,7 +72,7 @@ TEST_CASE("string::new_object from UTF-16 span", "[string]")
 
 	SECTION("empty")
 	{
-		auto s = jni::string::new_object(std::span<const jchar>());
+		auto s = jni::string::new_string(std::span<const jchar>());
 
 		REQUIRE(s);
 		CHECK(s->length() == 0);
@@ -80,8 +80,8 @@ TEST_CASE("string::new_object from UTF-16 span", "[string]")
 
 	SECTION("round trip from string_chars")
 	{
-		auto original = jni::string::new_object("hello");
-		auto copy = jni::string::new_object(original->chars());
+		auto original = jni::string::new_string_utf("hello");
+		auto copy = jni::string::new_string(original->chars());
 
 		CHECK(copy != original);
 		CHECK(to_u16(copy->chars()) == u"hello");
@@ -90,7 +90,7 @@ TEST_CASE("string::new_object from UTF-16 span", "[string]")
 
 TEST_CASE("string::chars", "[string]")
 {
-	auto s = jni::string::new_object("abc");
+	auto s = jni::string::new_string_utf("abc");
 
 	SECTION("UTF-16")
 	{
@@ -125,7 +125,7 @@ TEST_CASE("string::chars", "[string]")
 
 TEST_CASE("string::get_region", "[string]")
 {
-	auto s = jni::string::new_object("abcdef");
+	auto s = jni::string::new_string_utf("abcdef");
 
 	jchar buf[3];
 	s->get_region(1, 3, buf);

@@ -34,7 +34,7 @@ bool holds_lock(jni::ref<> obj)
 
 TEST_CASE("ref scopes", "[ref]")
 {
-	jni::local_ref<jni::string> local = jni::string::new_object("abc");
+	jni::local_ref<jni::string> local = jni::string::new_string_utf("abc");
 	REQUIRE(local);
 	CHECK(local.get_scope() == jni::scope::local);
 	CHECK(ref_type(local.handle()) == JNILocalRefType);
@@ -95,7 +95,7 @@ TEST_CASE("ref scopes", "[ref]")
 		other.reset();
 		CHECK_FALSE(other);
 
-		auto r = jni::string::new_object("x");
+		auto r = jni::string::new_string_utf("x");
 		jstring h = r.release();
 		CHECK_FALSE(r);
 		jni::detail::env()->DeleteLocalRef(h);
@@ -104,8 +104,8 @@ TEST_CASE("ref scopes", "[ref]")
 
 TEST_CASE("ref equality is identity", "[ref]")
 {
-	auto a = jni::string::new_object("same");
-	auto b = jni::string::new_object("same");
+	auto a = jni::string::new_string_utf("same");
+	auto b = jni::string::new_string_utf("same");
 
 	CHECK(a == a);
 	CHECK_FALSE(a == b);
@@ -118,14 +118,14 @@ TEST_CASE("ref in std::map (Comparable)", "[ref][compare]")
 {
 	std::map<jni::global_ref<jni::string>, int> map;
 
-	map.emplace(jni::string::new_object("b"), 2);
-	map.emplace(jni::string::new_object("c"), 3);
-	map.emplace(jni::string::new_object("a"), 1);
-	map.emplace(jni::string::new_object("a"), 4); // duplicate by value
+	map.emplace(jni::string::new_string_utf("b"), 2);
+	map.emplace(jni::string::new_string_utf("c"), 3);
+	map.emplace(jni::string::new_string_utf("a"), 1);
+	map.emplace(jni::string::new_string_utf("a"), 4); // duplicate by value
 
 	REQUIRE(map.size() == 3);
 	CHECK(std::string(jni::ref<jni::string>(map.begin()->first)) == "a");
-	CHECK(map.find(jni::string::new_object("c"))->second == 3);
+	CHECK(map.find(jni::string::new_string_utf("c"))->second == 3);
 }
 
 TEST_CASE("ref in std::unordered_map", "[ref][compare]")
@@ -133,23 +133,23 @@ TEST_CASE("ref in std::unordered_map", "[ref][compare]")
 	SECTION("identity")
 	{
 		std::unordered_map<jni::global_ref<jni::string>, int> map;
-		auto key = jni::string::new_object("key");
+		auto key = jni::string::new_string_utf("key");
 		map.emplace(key, 1);
-		map.emplace(jni::string::new_object("key"), 2);
+		map.emplace(jni::string::new_string_utf("key"), 2);
 
 		CHECK(map.size() == 2);
 		CHECK(map.find(key)->second == 1);
-		CHECK(map.find(jni::string::new_object("key")) == map.end());
+		CHECK(map.find(jni::string::new_string_utf("key")) == map.end());
 	}
 
 	SECTION("value")
 	{
 		std::unordered_map<jni::global_ref<jni::string>, int, jni::ref_value_hash<jni::string>, jni::ref_value_equal<jni::string>> map;
-		map.emplace(jni::string::new_object("key"), 1);
-		map.emplace(jni::string::new_object("key"), 2);
+		map.emplace(jni::string::new_string_utf("key"), 1);
+		map.emplace(jni::string::new_string_utf("key"), 2);
 
 		CHECK(map.size() == 1);
-		CHECK(map.find(jni::string::new_object("key"))->second == 1);
+		CHECK(map.find(jni::string::new_string_utf("key"))->second == 1);
 	}
 }
 
@@ -161,7 +161,7 @@ TEST_CASE("local_frame", "[ref]")
 		CHECK(frame);
 
 		for (int i = 0; i < 100; ++i)
-			jni::string::new_object("in frame").release(); // freed by frame
+			jni::string::new_string_utf("in frame").release(); // freed by frame
 
 		frame.pop();
 		CHECK_FALSE(frame);
@@ -176,7 +176,7 @@ TEST_CASE("local_frame", "[ref]")
 
 		{
 			jni::local_frame frame(4);
-			result = frame.pop(jni::string::new_object("result"));
+			result = frame.pop(jni::string::new_string_utf("result"));
 			CHECK_FALSE(frame);
 		}
 
