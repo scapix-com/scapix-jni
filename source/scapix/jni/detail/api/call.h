@@ -32,26 +32,26 @@ struct call;
 template <typename R, typename ...Args>
 struct call<R(Args...)>
 {
-	static R method(jobject obj, jmethodID id, Args... args)
+	static R method(jobject obj, jmethodID id, const Args&... args)
 	{
 		check_exception_nested_on_destroy check;
 		return type<R>::call_method(obj, id, api::call_param(args)...);
 	}
 
-	static R nonvirtual_method(jobject obj, jclass cls, jmethodID id, Args... args)
+	static R nonvirtual_method(jobject obj, jclass cls, jmethodID id, const Args&... args)
 	{
 		check_exception_nested_on_destroy check;
 		return type<R>::call_nonvirtual_method(obj, cls, id, api::call_param(args)...);
 	}
 
-	static R static_method(jclass cls, jmethodID id, Args... args)
+	static R static_method(jclass cls, jmethodID id, const Args&... args)
 	{
 		check_exception_nested_on_destroy check;
 		return type<R>::call_static_method(cls, id, api::call_param(args)...);
 	}
 
 	template <typename T>
-	static local_ref<T> new_object(jclass cls, jmethodID id, Args... args)
+	static local_ref<T> new_object(jclass cls, jmethodID id, const Args&... args)
 	{
 		return check_result_nested<T>(env()->NewObject(cls, id, api::call_param(args)...));
 	}
