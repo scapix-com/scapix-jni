@@ -79,14 +79,9 @@ class string : public object<"java/lang/String", object<"java/lang/Comparable">>
 {
 public:
 
-	static local_ref<string> new_string(const jchar* buf, jsize len)
-	{
-		return detail::check_result<string>(detail::env()->NewString(buf, len));
-	}
-
 	static local_ref<string> new_string(std::span<const jchar> str)
 	{
-		return new_string(str.data(), static_cast<jsize>(str.size()));
+		return detail::check_result<string>(detail::env()->NewString(str.data(), static_cast<jsize>(str.size())));
 	}
 
 	static local_ref<string> new_string_utf(const char* buf)

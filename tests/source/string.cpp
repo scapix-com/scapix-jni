@@ -35,7 +35,7 @@ TEST_CASE("string::new_string_utf", "[string]")
 TEST_CASE("string::new_string", "[string]")
 {
 	const jchar buf[] = { 'a', 'b', 0x05D0 };
-	auto s = jni::string::new_string(buf, 3);
+	auto s = jni::string::new_string(buf);
 
 	CHECK(s->length() == 3);
 	CHECK(s->length<char>() == 4); // U+05D0 is 2 bytes in (modified) UTF-8
