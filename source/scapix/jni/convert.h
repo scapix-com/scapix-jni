@@ -22,12 +22,10 @@
 #include <scapix/jni/ref.h>
 #include <scapix/jni/string.h>
 #include <scapix/jni/array.h>
-#include <scapix/jni/function.h>
 #include <scapix/jni/struct.h>
 #include <scapix/jni/cast.h>
 #include <scapix/jni/range.h>
 #include <scapix/jni/generics.h>
-#include <scapix/jni/bridge/function.h>
 
 namespace scapix::jni {
 

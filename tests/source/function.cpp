@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <scapix/jni/native_method.h>
-#include <scapix/jni/convert.h>
+#include <scapix/jni/bridge/function.h>
 
 namespace jni = scapix::jni;
 

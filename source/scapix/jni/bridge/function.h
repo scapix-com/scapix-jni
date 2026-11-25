@@ -11,6 +11,7 @@
 #include <utility>
 #include <scapix/jni/object.h>
 #include <scapix/jni/function.h>
+#include <scapix/jni/convert.h>
 #include <scapix/jni/fwd/native_method.h>
 
 namespace scapix::jni {

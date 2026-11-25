@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_BRIDGE_INIT_H
 #define SCAPIX_JNI_BRIDGE_INIT_H
 
+#include <scapix/jni/bridge/bridge.h>
 #include <scapix/jni/bridge/function.h>
 #include <scapix/jni/native_method.h>
 
