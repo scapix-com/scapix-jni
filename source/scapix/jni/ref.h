@@ -60,15 +60,17 @@ std::remove_cvref_t<Cpp> convert_cpp(Jni&& jni)
 	return convert_t<Jni, Cpp>::cpp(std::forward<Jni>(jni));
 }
 
+// Cpp is not something other ref constructors accept (ref, jobject, nullptr_t, etc.): avoids recursive constraint satisfaction.
+
 template <typename Jni, typename Cpp>
-concept has_convert_jni = !ref_type<std::remove_cvref_t<Cpp>> && requires (Cpp&& cpp)
+concept has_convert_jni = !ref_type<std::remove_cvref_t<Cpp>> && !std::is_convertible_v<std::remove_cvref_t<Cpp>, jobject> && requires (Cpp&& cpp)
 {
 	{ convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)) };
 	requires std::constructible_from<Jni, decltype(convert_t<Jni, Cpp>::jni(std::forward<Cpp>(cpp)))>;
 };
 
 template <typename Jni, typename Cpp>
-concept has_convert_cpp = !ref_type<std::remove_cvref_t<Cpp>> && requires (const Jni& jni)
+concept has_convert_cpp = !ref_type<std::remove_cvref_t<Cpp>> && !std::is_convertible_v<std::remove_cvref_t<Cpp>, jobject> && requires (const Jni& jni)
 {
 	{ convert_t<Jni, Cpp>::cpp(jni) } -> std::convertible_to<std::remove_cvref_t<Cpp>>;
 };
