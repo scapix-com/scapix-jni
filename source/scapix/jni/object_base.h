@@ -38,7 +38,7 @@ template <fixed_string ClassName, typename ...Bases>
 class object_base;
 
 template <fixed_string ClassName>
-class object_base<ClassName> : protected detail::object_impl<ClassName>
+class object_base<ClassName> : private detail::object_impl<ClassName>
 {
 	using impl = detail::object_impl<ClassName>;
 
