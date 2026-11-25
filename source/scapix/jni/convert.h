@@ -159,7 +159,7 @@ struct convert_string
 
 #endif
 
-template <object_convertible_to<string> J, std::convertible_to<std::string> Cpp>
+template <std::convertible_to<std::string> Cpp, object_convertible_to<string> J>
 struct convert<ref<J>, Cpp> : convert_string
 {
 };
@@ -187,16 +187,16 @@ concept same_size_integer = integer<T> && integer<I> && sizeof(T) == sizeof(I);
 template <object_convertible_to<object<"java/lang/Boolean">> J>
 struct convert<ref<J>, bool> : convert_primitive_object<"java/lang/Boolean", bool, jboolean, "booleanValue"> {};
 
-template <object_convertible_to<object<"java/lang/Byte">> J, same_size_integer<std::int8_t> Cpp>
+template <same_size_integer<std::int8_t> Cpp, object_convertible_to<object<"java/lang/Byte">> J>
 struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Byte", Cpp, jbyte, "byteValue"> {};
 
-template <object_convertible_to<object<"java/lang/Short">> J, same_size_integer<std::int16_t> Cpp>
+template <same_size_integer<std::int16_t> Cpp, object_convertible_to<object<"java/lang/Short">> J>
 struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Short", Cpp, jshort, "shortValue"> {};
 
-template <object_convertible_to<object<"java/lang/Integer">> J, same_size_integer<std::int32_t> Cpp>
+template <same_size_integer<std::int32_t> Cpp, object_convertible_to<object<"java/lang/Integer">> J>
 struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Integer", Cpp, jint, "intValue"> {};
 
-template <object_convertible_to<object<"java/lang/Long">> J, same_size_integer<std::int64_t> Cpp>
+template <same_size_integer<std::int64_t> Cpp, object_convertible_to<object<"java/lang/Long">> J>
 struct convert<ref<J>, Cpp> : convert_primitive_object<"java/lang/Long", Cpp, jlong, "longValue"> {};
 
 template <object_convertible_to<object<"java/lang/Float">> J>
