@@ -31,7 +31,7 @@ public:
 	template <init_method_type Type, typename ...Args>
 	static local_ref<object<ClassName>> new_object(Args&&... args)
 	{
-		return new_object<Type>(method_id<"<init>", Type>(), std::forward<Args>(args)...);
+		return detail::api::call<Type>::template new_object<object<ClassName>>(class_object().handle(), method_id<"<init>", Type>(), std::forward<Args>(args)...);
 	}
 
 	template <init_method_type Type, typename ...Args>
@@ -45,7 +45,7 @@ public:
 	template <fixed_string Name, method_type Type, typename ...Args>
 	auto call_method(Args&&... args) const
 	{
-		return call_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
+		return detail::api::call<Type>::method(handle(), method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
 	template <method_type Type, typename ...Args>
@@ -59,7 +59,7 @@ public:
 	template <fixed_string Name, method_type Type, typename ...Args>
 	auto call_nonvirtual_method(Args&&... args) const
 	{
-		return call_nonvirtual_method<Type>(method_id<Name, Type>(), std::forward<Args>(args)...);
+		return detail::api::call<Type>::nonvirtual_method(handle(), class_object().handle(), method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
 	template <method_type Type, typename ...Args>
@@ -73,7 +73,7 @@ public:
 	template <fixed_string Name, method_type Type, typename ...Args>
 	static auto call_static_method(Args&&... args)
 	{
-		return call_static_method<Type>(static_method_id<Name, Type>(), std::forward<Args>(args)...);
+		return detail::api::call<Type>::static_method(class_object().handle(), static_method_id<Name, Type>(), std::forward<Args>(args)...);
 	}
 
 	template <method_type Type, typename ...Args>
@@ -87,7 +87,7 @@ public:
 	template <fixed_string Name, typename Type>
 	Type get_field() const
 	{
-		return get_field<Type>(field_id<Name, Type>());
+		return detail::api::type<Type>::get_field(handle(), field_id<Name, Type>());
 	}
 
 	template <typename Type>
@@ -101,7 +101,7 @@ public:
 	template <fixed_string Name, typename Type>
 	void set_field(std::type_identity_t<Type> value) const
 	{
-		set_field<Type>(field_id<Name, Type>(), value);
+		detail::api::type<Type>::set_field(handle(), field_id<Name, Type>(), value);
 	}
 
 	template <typename Type>
@@ -115,7 +115,7 @@ public:
 	template <fixed_string Name, typename Type>
 	static Type get_static_field()
 	{
-		return get_static_field<Type>(static_field_id<Name, Type>());
+		return detail::api::type<Type>::get_static_field(class_object().handle(), static_field_id<Name, Type>());
 	}
 
 	template <typename Type>
@@ -129,7 +129,7 @@ public:
 	template <fixed_string Name, typename Type>
 	static void set_static_field(std::type_identity_t<Type> value)
 	{
-		set_static_field<Type>(static_field_id<Name, Type>(), value);
+		detail::api::type<Type>::set_static_field(class_object().handle(), static_field_id<Name, Type>(), value);
 	}
 
 	template <typename Type>
@@ -164,23 +164,26 @@ protected:
 
 	template <typename ...Args>
 		requires init_method_type<void(std::remove_reference_t<Args>...)>
-	static auto new_object(Args&&... args)
+	static local_ref<object<ClassName>> new_object(Args&&... args)
 	{
-		return new_object<void(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+		using type = void(std::remove_reference_t<Args>...);
+		return detail::api::call<type>::template new_object<object<ClassName>>(class_object().handle(), method_id<"<init>", signature_v<type>>(), std::forward<Args>(args)...);
 	}
 
 	template <fixed_string Name, typename R, typename ...Args>
 		requires method_type<R(std::remove_reference_t<Args>...)>
-	auto call_method(Args&&... args) const
+	R call_method(Args&&... args) const
 	{
-		return call_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+		using type = R(std::remove_reference_t<Args>...);
+		return detail::api::call<type>::method(handle(), method_id<Name, signature_v<type>>(), std::forward<Args>(args)...);
 	}
 
 	template <fixed_string Name, typename R, typename ...Args>
 		requires method_type<R(std::remove_reference_t<Args>...)>
-	static auto call_static_method(Args&&... args)
+	static R call_static_method(Args&&... args)
 	{
-		return call_static_method<Name, R(std::remove_reference_t<Args>...)>(std::forward<Args>(args)...);
+		using type = R(std::remove_reference_t<Args>...);
+		return detail::api::call<type>::static_method(class_object().handle(), static_method_id<Name, signature_v<type>>(), std::forward<Args>(args)...);
 	}
 
 	object_impl(jobject h) : handle_(h) {}
