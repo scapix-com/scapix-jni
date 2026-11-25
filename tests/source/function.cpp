@@ -24,6 +24,7 @@ using natives = jni::native_methods
 void register_natives()
 {
 	static const bool registered = (natives::register_(), true);
+	(void)registered;
 }
 
 // Distinct C++ signature for the same Java interface.
