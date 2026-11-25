@@ -58,24 +58,29 @@ concept object_array = array_type<T> && (class_name_v<T>[1] == 'L' || class_name
 
 namespace detail {
 
+// Specializations instead of class name comparisons: much faster to compile (especially with MSVC).
+
+template <fixed_string ClassName> struct handle_type_of { using type = void; };
+template <> struct handle_type_of<"java/lang/Class"> { using type = jclass; };
+template <> struct handle_type_of<"java/lang/String"> { using type = jstring; };
+template <> struct handle_type_of<"java/lang/Throwable"> { using type = jthrowable; };
+template <> struct handle_type_of<"[Z"> { using type = jbooleanArray; };
+template <> struct handle_type_of<"[B"> { using type = jbyteArray; };
+template <> struct handle_type_of<"[C"> { using type = jcharArray; };
+template <> struct handle_type_of<"[S"> { using type = jshortArray; };
+template <> struct handle_type_of<"[I"> { using type = jintArray; };
+template <> struct handle_type_of<"[J"> { using type = jlongArray; };
+template <> struct handle_type_of<"[F"> { using type = jfloatArray; };
+template <> struct handle_type_of<"[D"> { using type = jdoubleArray; };
+
 template <object_type T>
 constexpr auto handle_type()
 {
-	constexpr auto name = class_name_v<T>;
+	using type = typename handle_type_of<class_name_v<T>>::type;
 	using bases = base_classes_t<T>;
 
-	if constexpr (name == "java/lang/Class") return jclass();
-	else if constexpr (name == "java/lang/String") return jstring();
-	else if constexpr (name == "java/lang/Throwable") return jthrowable();
-	else if constexpr (name == "[Z") return jbooleanArray();
-	else if constexpr (name == "[B") return jbyteArray();
-	else if constexpr (name == "[C") return jcharArray();
-	else if constexpr (name == "[S") return jshortArray();
-	else if constexpr (name == "[I") return jintArray();
-	else if constexpr (name == "[J") return jlongArray();
-	else if constexpr (name == "[F") return jfloatArray();
-	else if constexpr (name == "[D") return jdoubleArray();
-	else if constexpr (name[0] == '[') return jobjectArray();
+	if constexpr (!std::is_void_v<type>) return type();
+	else if constexpr (class_name_v<T>[0] == '[') return jobjectArray();
 	else if constexpr (std::tuple_size_v<bases> != 0) return handle_type<std::tuple_element_t<0, bases>>();
 	else return jobject();
 }
