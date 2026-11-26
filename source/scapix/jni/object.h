@@ -127,7 +127,7 @@ ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
 	return std::move(r);
 }
 
-// new_object
+// Low level: calls Java constructor with signature Type.
 
 template <object_type T, init_method_type Type, typename ...Args>
 local_ref<T> new_object(Args&&... args)
@@ -135,8 +135,10 @@ local_ref<T> new_object(Args&&... args)
 	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);
 }
 
+// Calls T::new_object(args...).
+
 template <object_type T, typename ...Args>
-ref<T> new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
+auto new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
 {
 	return element_type_t<T>::new_object(std::forward<Args>(args)...);
 }
