@@ -109,7 +109,6 @@ static_assert(jni::object_convertible_to<jni::raw_object<Integer>, Integer>);
 static_assert(jni::object_convertible_to<Integer, jni::raw_object<Integer>>);
 static_assert(jni::object_convertible_to<jni::raw_object<Integer>, jni::object<"java/lang/Integer">>);
 static_assert(jni::object_convertible_to<jni::raw_object<Integer>, jni::object<>>);
-static_assert(std::is_same_v<decltype(jni::raw_object<Integer>::new_object<void(jint)>(1)), jni::local_ref<Integer>>);
 static_assert(std::is_same_v<decltype(jni::new_object<Integer, void(jint)>(1)), jni::local_ref<Integer>>);
 static_assert(std::is_same_v<decltype(jni::raw(std::declval<const jni::ref<Integer>&>())), jni::ref<jni::raw_object<Integer>>>);
 static_assert(std::is_same_v<decltype(jni::raw(std::declval<jni::local_ref<Integer>>())), jni::local_ref<jni::raw_object<Integer>>>);
@@ -153,16 +152,16 @@ TEST_CASE("raw_object", "[object_base]")
 {
 	SECTION("new_object returns typed local_ref")
 	{
-		jni::local_ref<Integer> i = jni::raw_object<Integer>::new_object<void(jint)>(42);
+		jni::local_ref<Integer> i = jni::new_object<Integer, void(jint)>(42);
 		REQUIRE(i);
 		CHECK(i->intValue() == 42);
-		CHECK(jni::new_object<Integer, void(jint)>(43)->intValue() == 43);
+		CHECK(jni::raw_object<Integer>::new_object<void(jint)>(43)->call_method<"intValue", jint()>() == 43);
 	}
 
 	SECTION("new_object with explicit method id")
 	{
 		auto id = jni::raw_object<Integer>::class_object()->get_method_id("<init>", "(I)V");
-		CHECK(jni::raw_object<Integer>::new_object<void(jint)>(id, 44)->intValue() == 44);
+		CHECK(jni::new_object<Integer, void(jint)>(id, 44)->intValue() == 44);
 	}
 
 	SECTION("raw gives low level interface")
