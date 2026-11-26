@@ -15,37 +15,8 @@
 
 namespace scapix::jni {
 
-// raw_object
-// Same Java class as T, with low level interface of object<>.
-
 template <object_type T>
-using raw_object = object<class_name_v<T>>;
-
-template <object_type T, scope Scope>
-ref<raw_object<T>> raw(const ref<T, Scope>& r)
-{
-	return r;
-}
-
-template <object_type T, scope Scope>
-ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
-{
-	return std::move(r);
-}
-
-// new_object
-
-template <object_type T, init_method_type Type, typename ...Args>
-ref<T> new_object(Args&&... args)
-{
-	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);
-}
-
-template <object_type T, typename ...Args>
-ref<T> new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
-{
-	return element_type_t<T>::new_object(std::forward<Args>(args)...);
-}
+class raw_object;
 
 // object
 
@@ -118,6 +89,57 @@ private:
 };
 
 #include <scapix/core/warning/pop.h>
+
+// raw_object
+// Same Java class as T, with low level interface of object<>.
+// new_object<Type>(args...) returns local_ref<T>.
+
+template <object_type T>
+class raw_object : public object<class_name_v<T>>
+{
+	using base = object<class_name_v<T>>;
+
+public:
+
+	template <init_method_type Type, typename ...Args>
+	static local_ref<T> new_object(Args&&... args)
+	{
+		return base::template new_object<Type>(std::forward<Args>(args)...);
+	}
+
+	template <init_method_type Type, typename ...Args>
+	static local_ref<T> new_object(jmethodID id, Args&&... args)
+	{
+		return base::template new_object<Type>(id, std::forward<Args>(args)...);
+	}
+
+};
+
+template <object_type T, scope Scope>
+ref<raw_object<T>> raw(const ref<T, Scope>& r)
+{
+	return r;
+}
+
+template <object_type T, scope Scope>
+ref<raw_object<T>, Scope> raw(ref<T, Scope>&& r)
+{
+	return std::move(r);
+}
+
+// new_object
+
+template <object_type T, init_method_type Type, typename ...Args>
+local_ref<T> new_object(Args&&... args)
+{
+	return raw_object<T>::template new_object<Type>(std::forward<Args>(args)...);
+}
+
+template <object_type T, typename ...Args>
+ref<T> new_object(Args&&... args) requires requires { element_type_t<T>::new_object(std::forward<Args>(args)...); }
+{
+	return element_type_t<T>::new_object(std::forward<Args>(args)...);
+}
 
 } // namespace scapix::jni
 
