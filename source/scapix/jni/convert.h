@@ -255,10 +255,11 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	static std::vector<T, A> cpp(ref<array<J>> a)
 	{
 		const auto size = a->size();
-		std::vector<T, A> v(size);
+		std::vector<T, A> v;
+		v.reserve(size);
 
 		for (jsize i = 0; i < size; ++i)
-			v[i] = convert_cpp<T>(a[i].get());
+			v.push_back(convert_cpp<T>(a[i].get()));
 
 		return v;
 	}
