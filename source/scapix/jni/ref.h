@@ -30,7 +30,6 @@ template <typename T>
 struct redirector
 {
 	T* operator -> () && noexcept { return &value; }
-	const T* operator -> () const && noexcept { return &value; }
 
 	T value;
 };
@@ -60,6 +59,8 @@ template <typename T, scope Scope>
 class ref
 {
 public:
+
+	static_assert(!std::is_const_v<T>, "ref<const T>: Java objects have no const, use ref<T> (for read-only array elements, use elements())");
 
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
@@ -114,12 +115,10 @@ public:
 		return *this;
 	}
 
-	redirector<element_type> operator -> () noexcept { return redirector<element_type>(get()); }
-	const redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
-	element_type operator * () noexcept { return get(); }
-	const element_type operator * () const noexcept { return get(); }
+	redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
+	element_type operator * () const noexcept { return get(); }
 
-	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
+	auto operator [] (jsize i) const requires object_array<T> { return get()[i]; }
 
 	explicit operator bool() const noexcept { return handle() != nullptr; }
 	element_type get() const noexcept { return element_type{ handle() }; }
@@ -174,6 +173,8 @@ template <typename T>
 class ref<T, scope::generic>
 {
 public:
+
+	static_assert(!std::is_const_v<T>, "ref<const T>: Java objects have no const, use ref<T> (for read-only array elements, use elements())");
 
 	using element_type = element_type_t<T>;
 	using handle_type = handle_type_t<element_type>;
@@ -253,12 +254,10 @@ public:
 		return *this;
 	}
 
-	redirector<element_type> operator -> () noexcept { return redirector<element_type>(get()); }
-	const redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
-	element_type operator * () noexcept { return get(); }
-	const element_type operator * () const noexcept { return get(); }
+	redirector<element_type> operator -> () const noexcept { return redirector<element_type>(get()); }
+	element_type operator * () const noexcept { return get(); }
 
-	auto operator [] (jsize i) requires object_array<T> { return get()[i]; }
+	auto operator [] (jsize i) const requires object_array<T> { return get()[i]; }
 
 	explicit operator bool() const noexcept { return handle() != nullptr; }
 	element_type get() const noexcept { return element_type{ handle() }; }

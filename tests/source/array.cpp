@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -20,49 +21,63 @@ TEST_CASE("primitive array", "[array]")
 	REQUIRE(a);
 	CHECK(a->size() == 5);
 
+	SECTION("elements are read-only, writable_elements are writable")
+	{
+		static_assert(std::is_same_v<decltype(a->elements()), jni::array_elements<const jint, jni::lock::noncritical>>);
+		static_assert(std::is_same_v<decltype(a->writable_elements()), jni::array_elements<jint, jni::lock::noncritical>>);
+		static_assert(std::is_same_v<decltype(a->elements<jni::lock::critical>()), jni::array_elements<const jint, jni::lock::critical>>);
+	}
+
 	SECTION("new array is zero initialized")
 	{
-		auto e = a->const_elements();
+		auto e = a->elements();
 		CHECK(std::all_of(e.begin(), e.end(), [](jint i) { return i == 0; }));
 	}
 
-	SECTION("elements are written back on destruction")
+	SECTION("writable elements are written back on destruction")
 	{
 		{
-			auto e = a->elements();
+			auto e = a->writable_elements();
 			std::iota(e.begin(), e.end(), 10);
 		}
 
 		jint buf[5];
-		a->get_region(0, 5, buf);
+		a->get_region(0, buf);
 		CHECK(buf[0] == 10);
 		CHECK(buf[4] == 14);
 	}
 
-	SECTION("abort discards changes")
+	SECTION("release() writes back before destruction")
 	{
-		{
-			auto e = a->elements<jni::lock::noncritical, jni::release_mode::abort>();
-			e[0] = 42;
-		}
+		auto e = a->writable_elements();
+		e[0] = 42;
+		e.release();
+		CHECK(e.empty());
 
 		jint value;
-		a->get_region(0, 1, &value);
+		a->get_region(0, std::span(&value, 1));
+		CHECK(value == 42);
+	}
 
-		// a JVM may return direct (non-copied) elements, then abort has no effect.
-		// HotSpot always copies.
-		CHECK(value == 0);
+	SECTION("const ref does not make elements read-only (shallow const)")
+	{
+		const jni::ref<jni::array<jint>>& c = a;
+		c->writable_elements()[2] = 3;
+
+		jint value;
+		c->get_region(2, std::span(&value, 1));
+		CHECK(value == 3);
 	}
 
 	SECTION("critical elements")
 	{
 		{
-			auto e = a->elements<jni::lock::critical>();
+			auto e = a->writable_elements<jni::lock::critical>();
 			e[1] = 7;
 		}
 
 		jint value;
-		a->get_region(1, 1, &value);
+		a->get_region(1, std::span(&value, 1));
 		CHECK(value == 7);
 	}
 
@@ -75,13 +90,13 @@ TEST_CASE("primitive array", "[array]")
 	SECTION("set_region / get_region")
 	{
 		const jint in[] = { 1, 2, 3 };
-		a->set_region(2, 3, in);
+		a->set_region(2, in);
 
 		jint out[5];
-		a->get_region(0, 5, out);
+		a->get_region(0, out);
 		CHECK(std::vector<jint>(out, out + 5) == std::vector<jint>{ 0, 0, 1, 2, 3 });
 
-		CHECK_THROWS_AS(a->set_region(4, 3, in), jni::vm_exception);
+		CHECK_THROWS_AS(a->set_region(4, in), jni::vm_exception);
 	}
 }
 
@@ -145,6 +160,15 @@ TEST_CASE("object array", "[array]")
 	{
 		CHECK_THROWS_AS(a->at(3), std::out_of_range);
 		CHECK_THROWS_AS(a->at(-1), std::out_of_range);
+	}
+
+	SECTION("const ref writes elements (shallow const)")
+	{
+		const jni::ref<jni::array<jni::string>>& c = a;
+		c[0] = jni::string::new_string_utf("x");
+		(*c)[1] = jni::string::new_string_utf("y");
+		CHECK(std::string(a[0].get()) == "x");
+		CHECK(std::string(a[1].get()) == "y");
 	}
 
 	SECTION("init value")

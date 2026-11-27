@@ -17,12 +17,6 @@ enum class lock
 	critical,
 };
 
-enum class release_mode
-{
-	copy = 0,
-	abort = JNI_ABORT,
-};
-
 } // namespace scapix::jni
 
 #endif // SCAPIX_JNI_LOCK_H

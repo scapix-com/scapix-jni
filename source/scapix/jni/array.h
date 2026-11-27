@@ -42,14 +42,18 @@ public:
 
 	using handle_type = typename array::handle_type;
 
-	// Proxy for an array element: reads the element on conversion to ref<T>.
+	// Proxy for an array element: reads the element on conversion to ref<T>, writes it on assignment.
+	// Each read or write is a single JNI call: there is no copy to write back, so there is no read-only proxy.
 
-	class const_reference
+	class reference
 	{
 	public:
 
-		const_reference(const const_reference&) = delete;
-		const_reference& operator = (const const_reference&) = delete;
+		reference(const reference&) = delete;
+		reference& operator = (const reference& other) { return *this = other.get(); }
+
+		template <typename Y, scope Scope>
+		reference& operator = (const ref<Y, Scope>& value) { set_element(arr, pos, value); return *this; }
 
 		void operator & () = delete;
 
@@ -57,75 +61,55 @@ public:
 		ref<T> get() const { return get_element(arr, pos); }
 		ref<T> operator -> () const { return get(); }
 
-	protected:
+	private:
 
 		friend array;
 
-		const_reference(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		reference(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
 		handle_type arr;
 		jsize pos;
 
 	};
 
-	// Additionally writes the element on assignment.
-
-	class reference : public const_reference
-	{
-	public:
-
-		reference& operator = (const reference& other) { return *this = other.get(); }
-
-		template <typename Y, scope Scope>
-		reference& operator = (const ref<Y, Scope>& value) { set_element(this->arr, this->pos, value); return *this; }
-
-	private:
-
-		friend array;
-
-		reference(handle_type arr, jsize pos) : const_reference(arr, pos) {}
-
-	};
-
-	template <typename Reference>
-	class basic_iterator
+	class iterator
 	{
 	public:
 
 		using difference_type = jsize;
 		using value_type = ref<T>;
 		using pointer = void;
-		using reference = Reference;
+		using reference = array::reference;
 		using iterator_category = std::random_access_iterator_tag;
 
-		basic_iterator() = default;
+		iterator() = default;
 
 		reference operator *() const { return reference(arr, pos); }
 		reference operator ->() const { return reference(arr, pos); }
 		reference operator [](difference_type n) const { return reference(arr, pos + n); }
 
-		basic_iterator& operator ++() { ++pos; return *this; }
-		basic_iterator& operator --() { --pos; return *this; }
+		iterator& operator ++() { ++pos; return *this; }
+		iterator& operator --() { --pos; return *this; }
 
-		basic_iterator operator ++(int) { auto temp = *this; ++pos; return temp; }
-		basic_iterator operator --(int) { auto temp = *this; --pos; return temp; }
+		iterator operator ++(int) { auto temp = *this; ++pos; return temp; }
+		iterator operator --(int) { auto temp = *this; --pos; return temp; }
 
-		basic_iterator& operator +=(difference_type n) { pos += n; return *this; }
-		basic_iterator& operator -=(difference_type n) { pos -= n; return *this; }
+		iterator& operator +=(difference_type n) { pos += n; return *this; }
+		iterator& operator -=(difference_type n) { pos -= n; return *this; }
 
-		friend basic_iterator operator + (basic_iterator i, difference_type n) { return i += n; }
-		friend basic_iterator operator + (difference_type n, basic_iterator i) { return i += n; }
-		friend basic_iterator operator - (basic_iterator i, difference_type n) { return i -= n; }
-		friend difference_type operator - (const basic_iterator& a, const basic_iterator& b) { return a.pos - b.pos; }
+		friend iterator operator + (iterator i, difference_type n) { return i += n; }
+		friend iterator operator + (difference_type n, iterator i) { return i += n; }
+		friend iterator operator - (iterator i, difference_type n) { return i -= n; }
+		friend difference_type operator - (const iterator& a, const iterator& b) { return a.pos - b.pos; }
 
 		// also declares defaulted operator ==
-		friend auto operator <=> (const basic_iterator&, const basic_iterator&) = default;
+		friend auto operator <=> (const iterator&, const iterator&) = default;
 
 	private:
 
 		friend array;
 
-		basic_iterator(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
+		iterator(handle_type arr, jsize pos) : arr(arr), pos(pos) {}
 
 		handle_type arr = nullptr;
 		jsize pos = 0;
@@ -136,35 +120,18 @@ public:
 	using size_type = jsize;
 	using difference_type = jsize;
 	using pointer = void;
-	using const_pointer = void;
-	using iterator = basic_iterator<reference>;
-	using const_iterator = basic_iterator<const_reference>;
 	using reverse_iterator = std::reverse_iterator<iterator>;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	bool empty() const { return this->size() == 0; }
 
-	iterator begin() { return iterator(this->handle(), 0); }
-	const_iterator begin() const { return const_iterator(this->handle(), 0); }
-	const_iterator cbegin() const { return begin(); }
+	iterator begin() const { return iterator(this->handle(), 0); }
+	iterator end() const { return iterator(this->handle(), this->size()); }
 
-	iterator end() { return iterator(this->handle(), this->size()); }
-	const_iterator end() const { return const_iterator(this->handle(), this->size()); }
-	const_iterator cend() const { return end(); }
+	reverse_iterator rbegin() const { return reverse_iterator(end()); }
+	reverse_iterator rend() const { return reverse_iterator(begin()); }
 
-	reverse_iterator rbegin() { return reverse_iterator(end()); }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
-	const_reverse_iterator crbegin() const { return rbegin(); }
-
-	reverse_iterator rend() { return reverse_iterator(begin()); }
-	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
-	const_reverse_iterator crend() const { return rend(); }
-
-	reference operator[](size_type pos) { return reference(this->handle(), pos); }
-	const_reference operator[](size_type pos) const { return const_reference(this->handle(), pos); }
-
-	reference at(size_type pos) { check_range(pos); return (*this)[pos]; }
-	const_reference at(size_type pos) const { check_range(pos); return (*this)[pos]; }
+	reference operator[](size_type pos) const { return reference(this->handle(), pos); }
+	reference at(size_type pos) const { check_range(pos); return (*this)[pos]; }
 
 	static ref<array> new_array(jsize len, ref<T> init = {})
 	{
@@ -197,14 +164,21 @@ private:
 // primitive array
 
 // View of primitive array elements: std::span, which releases the elements on destruction.
-// T is const for elements of a const array.
+//
+// Read-only view (T is const) is released without copying the elements back (JNI_ABORT).
+// Writable view is released copying the elements back to the array (mode 0).
+//
+// There is no writable view released without copying back: when the elements are not a copy,
+// writes are already visible to Java, so the result would depend on the JVM.
 
-template <typename T, lock Lock, release_mode Mode>
+template <typename T, lock Lock>
 	requires primitive<std::remove_const_t<T>>
 class array_elements : public std::span<T>
 {
 	using span = std::span<T>;
 	using api = detail::api::array<typename span::value_type, Lock>;
+
+	static constexpr jint release_mode = std::is_const_v<T> ? JNI_ABORT : 0;
 
 public:
 
@@ -213,7 +187,7 @@ public:
 	array_elements(const array_elements&) = delete;
 	array_elements& operator=(const array_elements&) = delete;
 
-	~array_elements() { reset(Mode); }
+	~array_elements() { release(); }
 
 	T& at(std::size_t pos) const
 	{
@@ -229,10 +203,16 @@ public:
 
 	void commit() requires (!std::is_const_v<T>) { release_elements(JNI_COMMIT); }
 
-	// After a call to release() or abort() this is an empty span.
+	// Release elements now, as the destructor would. After a call to release() this is an empty span.
 
-	void release() requires (!std::is_const_v<T>) { reset(release_mode::copy); }
-	void abort() { reset(release_mode::abort); }
+	void release()
+	{
+		if (this->data())
+		{
+			release_elements(release_mode);
+			span::operator=(span());
+		}
+	}
 
 private:
 
@@ -251,15 +231,6 @@ private:
 		api::release_array_elements(array_, const_cast<value_type*>(this->data()), mode);
 	}
 
-	void reset(release_mode mode)
-	{
-		if (this->data())
-		{
-			release_elements(static_cast<jint>(mode));
-			span::operator=(span());
-		}
-	}
-
 	handle_type array_;
 	jboolean is_copy_; // written during base class initialization: must not have an initializer
 
@@ -275,51 +246,46 @@ public:
 		return detail::check_result<array>(detail::api::type<T>::new_array(len));
 	}
 
-	template <lock Lock = lock::noncritical, release_mode Mode = release_mode::copy>
-	auto elements()
-	{
-		return elements<Lock, Mode>(this->size());
-	}
+	// Read-only access is the default: writes are requested explicitly, with writable_elements() or set_region().
+	// Constness of the array does not matter: like ref, array is a handle (shallow const).
 
-	template <lock Lock = lock::noncritical, release_mode Mode = release_mode::copy>
-	auto elements(jsize size)
+	template <lock Lock = lock::noncritical>
+	array_elements<const T, Lock> elements() const
 	{
-		return array_elements<T, Lock, Mode>(this->handle(), size);
+		return elements<Lock>(this->size());
 	}
 
 	template <lock Lock = lock::noncritical>
-	auto elements() const
+	array_elements<const T, Lock> elements(jsize size) const
 	{
-		return const_elements<Lock>(this->size());
+		return array_elements<const T, Lock>(this->handle(), size);
 	}
 
 	template <lock Lock = lock::noncritical>
-	auto elements(jsize size) const
+	array_elements<T, Lock> writable_elements() const
 	{
-		return const_elements<Lock>(size);
+		return writable_elements<Lock>(this->size());
 	}
 
 	template <lock Lock = lock::noncritical>
-	auto const_elements() const
+	array_elements<T, Lock> writable_elements(jsize size) const
 	{
-		return const_elements<Lock>(this->size());
+		return array_elements<T, Lock>(this->handle(), size);
 	}
 
-	template <lock Lock = lock::noncritical>
-	auto const_elements(jsize size) const
-	{
-		return array_elements<const T, Lock, release_mode::abort>(this->handle(), size);
-	}
+	// Copy buf.size() elements, starting at start, from the array to buf.
 
-	void get_region(jsize start, jsize len, T* buf) const
+	void get_region(jsize start, std::span<T> buf) const
 	{
-		detail::api::type<T>::get_array_region(this->handle(), start, len, buf);
+		detail::api::type<T>::get_array_region(this->handle(), start, static_cast<jsize>(buf.size()), buf.data());
 		detail::check_exception();
 	}
 
-	void set_region(jsize start, jsize len, const T* buf)
+	// Copy buf.size() elements from buf to the array, starting at start.
+
+	void set_region(jsize start, std::span<const T> buf) const
 	{
-		detail::api::type<T>::set_array_region(this->handle(), start, len, buf);
+		detail::api::type<T>::set_array_region(this->handle(), start, static_cast<jsize>(buf.size()), buf.data());
 		detail::check_exception();
 	}
 

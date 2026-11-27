@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <span>
 #include <unordered_map>
 #include <unordered_set>
 #include <scapix/core/immortal.h>
@@ -117,7 +118,7 @@ struct convert_string
 	{
 		auto bytes = obj->call_method<"getBytes", ref<array<jbyte>>(ref<charset>)>(utf8_charset());
 		std::string str(bytes->size(), char());
-		bytes->get_region(0, static_cast<jsize>(str.size()), reinterpret_cast<jbyte*>(str.data()));
+		bytes->get_region(0, std::span(reinterpret_cast<jbyte*>(str.data()), str.size()));
 
 		return str;
 	}
@@ -125,7 +126,7 @@ struct convert_string
 	static ref<string> jni(std::string_view str)
 	{
 		auto bytes = array<jbyte>::new_array(static_cast<jsize>(str.size()));
-		bytes->set_region(0, static_cast<jsize>(str.size()), reinterpret_cast<const jbyte*>(str.data()));
+		bytes->set_region(0, std::span(reinterpret_cast<const jbyte*>(str.data()), str.size()));
 
 		return new_object<string, void(ref<array<jbyte>>, ref<charset>)>(bytes, utf8_charset());
 	}
@@ -217,15 +218,14 @@ struct convert<ref<array<J>>, std::vector<T, A>>
 	{
 		const auto size = a->size();
 		std::vector<T, A> v(size);
-		a->get_region(0, size, reinterpret_cast<J*>(v.data()));
+		a->get_region(0, std::span(reinterpret_cast<J*>(v.data()), v.size()));
 		return v;
 	}
 
 	static ref<array<J>> jni(const std::vector<T, A>& v)
 	{
-		const auto size = static_cast<jsize>(v.size());
-		auto a = array<J>::new_array(size);
-		a->set_region(0, size, reinterpret_cast<const J*>(v.data()));
+		auto a = array<J>::new_array(static_cast<jsize>(v.size()));
+		a->set_region(0, std::span(reinterpret_cast<const J*>(v.data()), v.size()));
 		return a;
 	}
 };
@@ -235,7 +235,7 @@ struct convert<ref<array<jboolean>>, std::vector<bool, A>>
 {
 	static std::vector<bool, A> cpp(ref<array<jboolean>> a)
 	{
-		auto e = a->const_elements<lock::critical>();
+		auto e = a->elements<lock::critical>();
 		return std::vector<bool, A>(e.begin(), e.end());
 	}
 
@@ -243,7 +243,7 @@ struct convert<ref<array<jboolean>>, std::vector<bool, A>>
 	{
 		const auto size = static_cast<jsize>(v.size());
 		auto a = array<jboolean>::new_array(size);
-		auto e = a->elements<lock::critical>(size);
+		auto e = a->writable_elements<lock::critical>(size);
 		std::copy(v.begin(), v.end(), e.begin());
 		return a;
 	}
