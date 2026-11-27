@@ -43,8 +43,9 @@ using generic_type = parameterized<T, Args...>;
 //
 // Type T with JNI signature of Erasure.
 //
-// Java erases type variables to their first bound (java.lang.Object, if not bounded):
+// Java erases type variables to the erasure of their first bound (java.lang.Object, if not bounded):
 // the signature of "E get(int)" in List<E> is "(I)Ljava/lang/Object;", for any E.
+// Erasure is a raw type: E in Enum<E extends Enum<E>> is erased to raw Enum, not Enum<E>.
 //
 // list->call_method<"get", ref<erased<java::lang::String>>(jint)>(0);
 
