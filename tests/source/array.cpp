@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <span>
 #include <stdexcept>
@@ -177,6 +178,21 @@ TEST_CASE("object array", "[array]")
 		CHECK(e - b == 3);
 		CHECK(b < e);
 		CHECK(std::string(b[2].get()) == "two");
+	}
+
+	SECTION("ranges algorithms write elements")
+	{
+		static_assert(std::random_access_iterator<jni::array<jni::string>::iterator>);
+		static_assert(std::indirectly_writable<jni::array<jni::string>::iterator, jni::ref<jni::string>>);
+
+		std::ranges::reverse(*a);
+		CHECK(std::string(a[0].get()) == "two");
+		CHECK(std::string(a[2].get()) == "zero");
+
+		const std::vector<jni::local_ref<jni::string>> v{ jni::string::new_string_utf("x"), jni::string::new_string_utf("y") };
+		std::ranges::copy(v, a->begin());
+		CHECK(std::string(a[0].get()) == "x");
+		CHECK(std::string(a[1].get()) == "y");
 	}
 
 	SECTION("at() checks range")

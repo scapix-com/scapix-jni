@@ -49,10 +49,10 @@ public:
 	public:
 
 		reference(const reference&) = delete;
-		reference& operator = (const reference& other) { return *this = other.get(); }
+		const reference& operator = (const reference& other) const { return *this = other.get(); }
 
 		template <typename Y, scope Scope>
-		reference& operator = (const ref<Y, Scope>& value) { set_element(arr, pos, value); return *this; }
+		const reference& operator = (const ref<Y, Scope>& value) const { set_element(arr, pos, value); return *this; }
 
 		void operator & () = delete;
 
@@ -70,6 +70,8 @@ public:
 		jsize pos;
 
 	};
+
+	// std::random_access_iterator, std::indirectly_writable.
 
 	class iterator
 	{
