@@ -21,7 +21,8 @@
 
 namespace scapix::jni {
 
-// View of string characters: std::span, which releases the characters on destruction.
+// View of string characters: std::span, released on destruction.
+// Does not keep the string alive.
 // Char is jchar (UTF-16) or char (JNI modified UTF-8).
 
 template <typename Char, lock Lock>

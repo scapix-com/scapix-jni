@@ -164,6 +164,7 @@ private:
 // primitive array
 
 // View of primitive array elements: std::span, released on destruction.
+// Does not keep the array alive.
 //
 // Read-only view (T is const) is released without copying back (JNI_ABORT).
 // Writable view is released copying back (mode 0).
