@@ -30,6 +30,7 @@ public:
 	using array_base::object::object;
 
 	jsize size() const { return detail::env()->GetArrayLength(this->handle()); }
+	bool empty() const { return size() == 0; }
 
 };
 
@@ -122,8 +123,6 @@ public:
 	using difference_type = jsize;
 	using pointer = void;
 	using reverse_iterator = std::reverse_iterator<iterator>;
-
-	bool empty() const { return this->size() == 0; }
 
 	iterator begin() const { return iterator(this->handle(), 0); }
 	iterator end() const { return iterator(this->handle(), this->size()); }

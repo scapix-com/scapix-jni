@@ -24,6 +24,8 @@ TEST_CASE("primitive array", "[array]")
 
 	REQUIRE(a);
 	CHECK(a->size() == 5);
+	CHECK_FALSE(a->empty());
+	CHECK(jni::array<jint>::new_array(0)->empty());
 
 	SECTION("elements are read-only, writable_elements are writable")
 	{
