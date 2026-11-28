@@ -42,8 +42,7 @@ public:
 
 	using handle_type = typename array::handle_type;
 
-	// Proxy for an array element: reads the element on conversion to ref<T>, writes it on assignment.
-	// Each read or write is a single JNI call: there is no copy to write back, so there is no read-only proxy.
+	// Proxy for an array element: conversion to ref<T> reads it, assignment writes it, one JNI call each.
 
 	class reference
 	{
@@ -163,13 +162,10 @@ private:
 
 // primitive array
 
-// View of primitive array elements: std::span, which releases the elements on destruction.
+// View of primitive array elements: std::span, released on destruction.
 //
-// Read-only view (T is const) is released without copying the elements back (JNI_ABORT).
-// Writable view is released copying the elements back to the array (mode 0).
-//
-// There is no writable view released without copying back: when the elements are not a copy,
-// writes are already visible to Java, so the result would depend on the JVM.
+// Read-only view (T is const) is released without copying back (JNI_ABORT).
+// Writable view is released copying back (mode 0).
 
 template <typename T, lock Lock>
 	requires primitive<std::remove_const_t<T>>
@@ -199,24 +195,31 @@ public:
 
 	jboolean is_copy() const { return is_copy_; }
 
-	// Copy elements back to the array, without releasing them.
+	// Copy elements back to the array without releasing them (JNI_COMMIT).
 
 	void commit() requires (!std::is_const_v<T>) { release_elements(JNI_COMMIT); }
 
-	// Release elements now, as the destructor would. After a call to release() this is an empty span.
+	// Release elements as the destructor would, leaving an empty span.
 
-	void release()
-	{
-		if (this->data())
-		{
-			release_elements(release_mode);
-			span::operator=(span());
-		}
-	}
+	void release() { release(release_mode); }
+
+	// Release elements without copying back (JNI_ABORT), leaving an empty span.
+	// Does not undo writes: they are already visible to Java if the elements are not a copy.
+
+	void abort() requires (!std::is_const_v<T>) { release(JNI_ABORT); }
 
 private:
 
 	friend class array<value_type>;
+
+	void release(jint mode)
+	{
+		if (this->data())
+		{
+			release_elements(mode);
+			span::operator=(span());
+		}
+	}
 
 	using handle_type = typename array<value_type>::handle_type;
 

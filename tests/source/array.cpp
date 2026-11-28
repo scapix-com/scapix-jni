@@ -14,6 +14,9 @@
 
 namespace jni = scapix::jni;
 
+template <typename Elements>
+concept can_abort = requires (Elements& e) { e.abort(); };
+
 TEST_CASE("primitive array", "[array]")
 {
 	auto a = jni::array<jint>::new_array(5);
@@ -52,6 +55,26 @@ TEST_CASE("primitive array", "[array]")
 		auto e = a->writable_elements();
 		e[0] = 42;
 		e.release();
+		CHECK(e.empty());
+
+		jint value;
+		a->get_region(0, std::span(&value, 1));
+		CHECK(value == 42);
+	}
+
+	SECTION("abort() releases without writing back")
+	{
+		static_assert(can_abort<jni::array_elements<jint, jni::lock::noncritical>>);
+		static_assert(!can_abort<jni::array_elements<const jint, jni::lock::noncritical>>);
+
+		auto e = a->writable_elements();
+
+		// change made to the array while the elements are held: not overwritten by unchanged elements
+
+		const jint in[] = { 42 };
+		a->set_region(0, in);
+
+		e.abort();
 		CHECK(e.empty());
 
 		jint value;
