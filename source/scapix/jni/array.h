@@ -7,6 +7,7 @@
 #ifndef SCAPIX_JNI_ARRAY_H
 #define SCAPIX_JNI_ARRAY_H
 
+#include <cassert>
 #include <compare>
 #include <cstddef>
 #include <iterator>
@@ -257,24 +258,26 @@ public:
 	template <lock Lock = lock::noncritical>
 	array_elements<const T, Lock> elements() const
 	{
-		return elements<Lock>(this->size());
+		return array_elements<const T, Lock>(this->handle(), this->size());
 	}
 
 	template <lock Lock = lock::noncritical>
 	array_elements<const T, Lock> elements(jsize size) const
 	{
+		assert(size >= 0 && size <= this->size());
 		return array_elements<const T, Lock>(this->handle(), size);
 	}
 
 	template <lock Lock = lock::noncritical>
 	array_elements<T, Lock> writable_elements() const
 	{
-		return writable_elements<Lock>(this->size());
+		return array_elements<T, Lock>(this->handle(), this->size());
 	}
 
 	template <lock Lock = lock::noncritical>
 	array_elements<T, Lock> writable_elements(jsize size) const
 	{
+		assert(size >= 0 && size <= this->size());
 		return array_elements<T, Lock>(this->handle(), size);
 	}
 
